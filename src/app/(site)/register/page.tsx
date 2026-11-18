@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { School, UserRound, CheckCircle2 } from "lucide-react";
-import { Notice, PageHero } from "@/components/ui/misc";
+import { LinkButton } from "@/components/ui/button";
+import { PageHero } from "@/components/ui/misc";
 
 export const metadata: Metadata = {
   title: "Register",
@@ -53,12 +54,14 @@ export default function RegisterPage() {
                     <li key={pt} className="flex gap-3"><CheckCircle2 className="mt-0.5 size-5 shrink-0 text-brand-blue" aria-hidden />{pt}</li>
                   ))}
                 </ul>
+                {p.id === "school" ? (
+                  <LinkButton href="/register/school" variant="gold" size="lg" className="mt-8">Register your school</LinkButton>
+                ) : (
+                  <p className="mt-8 rounded-xl bg-surface px-4 py-3 text-sm text-muted">Individual registration opens with the student and parent portals. Until then, ask your school to register you.</p>
+                )}
               </article>
             ))}
           </div>
-          <Notice title="Online registration opens soon">
-            School and student accounts open with the registration portal. Until then, schools that want to take part can reach our team through the contact page.
-          </Notice>
         </div>
       </section>
     </>

@@ -15,6 +15,13 @@
       "when": 1795024878981,
       "tag": "0001_totp_replay",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795026057410,
+      "tag": "0002_school_portal",
+      "breakpoints": true
     }
   ]
 }

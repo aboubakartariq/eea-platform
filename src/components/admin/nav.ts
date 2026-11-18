@@ -17,10 +17,10 @@ export const adminNav: { group: string; items: AdminNavItem[] }[] = [
   {
     group: "Operations",
     items: [
-      { label: "Schools", href: "/admin/schools", icon: "School", permission: "schools.view", phase: 4 },
-      { label: "Students", href: "/admin/students", icon: "GraduationCap", permission: "students.view", phase: 4 },
-      { label: "Competitions", href: "/admin/competitions", icon: "Trophy", permission: "competitions.view", phase: 4 },
-      { label: "Registrations", href: "/admin/registrations", icon: "ClipboardList", permission: "registrations.view", phase: 4 },
+      { label: "Schools", href: "/admin/schools", icon: "School", permission: "schools.view" },
+      { label: "Students", href: "/admin/students", icon: "GraduationCap", permission: "students.view" },
+      { label: "Competitions", href: "/admin/competitions", icon: "Trophy", permission: "competitions.view" },
+      { label: "Registrations", href: "/admin/registrations", icon: "ClipboardList", permission: "registrations.view" },
       { label: "Question bank", href: "/admin/questions", icon: "Library", permission: "questions.view", phase: 5 },
       { label: "Examinations", href: "/admin/exams", icon: "FileCheck2", permission: "exams.view", phase: 5 },
       { label: "Results", href: "/admin/results", icon: "ListOrdered", permission: "results.view", phase: 6 },

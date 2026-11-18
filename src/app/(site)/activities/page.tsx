@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
-import { activities } from "@/content/competitions";
+import { getPublishedCompetitions } from "@/lib/competitions";
 import { CompetitionCard } from "@/components/competition-card";
-import { PageHero } from "@/components/ui/misc";
+import { Notice, PageHero } from "@/components/ui/misc";
 
-export const metadata: Metadata = {
-  title: "Extracurricular activities",
-  description: "Art, spelling, quiz and other skills-based competitions for students.",
-};
+export const metadata: Metadata = { title: "Extracurricular activities", description: "Creative and skills-based competitions for students." };
 
-export default function ActivitiesPage() {
+export default async function ActivitiesPage() {
+  const items = (await getPublishedCompetitions()).filter((c) => c.kind === "activity");
   return (
     <>
-      <PageHero
-        eyebrow="Extracurricular"
-        title="Creative and skills-based competitions"
-        intro="Not every talent shows up in a subject exam. These events celebrate creativity, confidence and curiosity."
-      />
+      <PageHero eyebrow="Extracurricular" title="Creative and skills-based competitions" intro="Not every talent shows up in a subject exam. These events celebrate creativity, confidence and curiosity." />
       <section className="bg-surface py-14 sm:py-16">
-        <div className="container-page grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {activities.map((c) => <CompetitionCard key={c.slug} c={c} />)}
+        <div className="container-page">
+          {items.length ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((c) => <CompetitionCard key={c.slug} c={c} />)}</div>
+          ) : (
+            <Notice title="Extracurricular competitions are coming">
+              Art, spelling, quiz and other activity competitions will be announced here. Meanwhile, explore our olympiads.
+            </Notice>
+          )}
         </div>
       </section>
     </>

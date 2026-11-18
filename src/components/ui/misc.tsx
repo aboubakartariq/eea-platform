@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { Accent } from "@/content/competitions";
+import type { Accent } from "@/lib/competition-types";
 
 export const accentStyles: Record<Accent, { soft: string; text: string; ring: string; solid: string }> = {
   gold: { soft: "bg-gold-50", text: "text-gold-700", ring: "ring-gold/30", solid: "bg-gold" },

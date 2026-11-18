@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { LogOut } from "lucide-react";
-import { getSession, pendingStep } from "@/lib/auth/dal";
+import { getSession, homeFor, pendingStep } from "@/lib/auth/dal";
 import { logoutAction } from "@/lib/auth/actions";
 import { adminNav } from "@/components/admin/nav";
 import { SidebarNav } from "@/components/admin/sidebar-nav";
@@ -17,7 +17,7 @@ async function visibleNav() {
   if (!s) redirect("/login");
   const step = pendingStep(s);
   if (step) redirect(step);
-  if (!s.user.isStaff) redirect("/login");
+  if (!s.user.isStaff) redirect(homeFor(s.user));
   return {
     user: s.user,
     groups: adminNav

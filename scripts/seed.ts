@@ -8,6 +8,7 @@
 import { eq, notInArray } from "drizzle-orm";
 import { db, pool, schema } from "./db";
 import { DEFAULT_ROLES, PERMISSIONS } from "../src/lib/auth/permissions";
+import { COMPETITIONS } from "./competitions-seed";
 
 async function main() {
   const entries = Object.entries(PERMISSIONS).map(([key, v]) => ({ key, module: v.module, description: v.description }));
@@ -29,6 +30,11 @@ async function main() {
       await db.insert(schema.rolePermissions).values(r.permissions.map((p) => ({ roleId: roleId!, permissionKey: p }))).onConflictDoNothing();
     }
   }
+  for (const c of COMPETITIONS) {
+    const inserted = await db.insert(schema.competitions).values({ ...c, status: "published" }).onConflictDoNothing({ target: schema.competitions.slug }).returning({ id: schema.competitions.id });
+    if (inserted.length) console.log(`+ competition ${c.name}`);
+  }
+
   console.log(`Seed complete: ${entries.length} permissions, ${DEFAULT_ROLES.length} roles.`);
 }
 

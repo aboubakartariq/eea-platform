@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { and, count, desc, eq, gt, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, like, or, sql, sum } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { can, requirePermission } from "@/lib/auth/dal";
 import { Card, DateTime, EmptyState, PageHeader, StatCard, td } from "@/components/admin/ui";
@@ -11,12 +11,15 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function Dashboard() {
   const user = await requirePermission("dashboard.view");
 
-  const [[schools], [pendingSchools], [staff], [newEnquiries], [failedLogins]] = await Promise.all([
+  const [[schools], [pendingSchools], [staff], [newEnquiries], [failedLogins], [students], [entries], [competitions]] = await Promise.all([
     db.select({ n: count() }).from(schema.schools),
     db.select({ n: count() }).from(schema.schools).where(eq(schema.schools.status, "pending")),
     db.select({ n: count() }).from(schema.users).where(and(eq(schema.users.kind, "staff"), eq(schema.users.status, "active"))),
     db.select({ n: count() }).from(schema.contactEnquiries).where(eq(schema.contactEnquiries.status, "new")),
     db.select({ n: count() }).from(schema.auditLogs).where(and(gt(schema.auditLogs.createdAt, sql`now() - interval '24 hours'`), or(like(schema.auditLogs.action, "login.failed"), like(schema.auditLogs.action, "login.locked"), like(schema.auditLogs.action, "login.totp_failed")))),
+    db.select({ n: count() }).from(schema.students).where(eq(schema.students.archived, false)),
+    db.select({ n: count(), due: sum(schema.registrations.totalPkr) }).from(schema.registrations).where(eq(schema.registrations.status, "pending_payment")),
+    db.select({ n: count() }).from(schema.competitions).where(eq(schema.competitions.status, "published")),
   ]);
 
   const recent = can(user, "audit.view")
@@ -32,7 +35,10 @@ export default async function Dashboard() {
     <>
       <PageHeader title={`Welcome, ${user.name.split(" ")[0]}`} description="Live figures from the database. More figures appear here as each module goes live." />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Schools" value={schools.n} hint={`${pendingSchools.n} awaiting approval`} />
+        <StatCard label="Schools" value={schools.n} hint={`${pendingSchools.n} awaiting approval`} href={can(user, "schools.view") ? "/admin/schools" : undefined} />
+        <StatCard label="Students" value={students.n} href={can(user, "students.view") ? "/admin/students" : undefined} />
+        <StatCard label="Registrations awaiting payment" value={entries.n} hint={`PKR ${Number(entries.due ?? 0).toLocaleString("en-PK")} due`} href={can(user, "registrations.view") ? "/admin/registrations" : undefined} />
+        <StatCard label="Published competitions" value={competitions.n} href={can(user, "competitions.view") ? "/admin/competitions" : undefined} />
         <StatCard label="New enquiries" value={newEnquiries.n} hint="From the website contact form" href={can(user, "enquiries.view") ? "/admin/enquiries" : undefined} />
         <StatCard label="Active staff accounts" value={staff.n} href={can(user, "users.view") ? "/admin/users" : undefined} />
         <StatCard label="Failed sign-ins (24 h)" value={failedLogins.n} hint="Wrong passwords, codes and lockouts" href={can(user, "audit.view") ? "/admin/audit?q=login" : undefined} />
@@ -63,7 +69,7 @@ export default async function Dashboard() {
         <Card title="Coming to this dashboard">
           <ul className="divide-y divide-line text-sm">
             {[
-              ["Students, competitions and registrations", 4],
+              ["Student and parent portals, admit cards", 4],
               ["Upcoming and completed examinations", 5],
               ["Results awaiting publication, certificates", 6],
               ["Revenue and pending payments", 7],

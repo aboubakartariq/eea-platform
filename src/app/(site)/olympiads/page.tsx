@@ -1,24 +1,22 @@
 import type { Metadata } from "next";
-import { olympiads } from "@/content/competitions";
+import { getPublishedCompetitions } from "@/lib/competitions";
 import { CompetitionCard } from "@/components/competition-card";
-import { PageHero } from "@/components/ui/misc";
+import { Notice, PageHero } from "@/components/ui/misc";
 
-export const metadata: Metadata = {
-  title: "Olympiads",
-  description: "Subject olympiads in mathematics, science and English for Grades 1 to 10.",
-};
+export const metadata: Metadata = { title: "Olympiads", description: "EEA's olympiads in mental maths, English, science and reasoning." };
 
-export default function OlympiadsPage() {
+export default async function OlympiadsPage() {
+  const items = (await getPublishedCompetitions()).filter((c) => c.kind === "olympiad");
   return (
     <>
-      <PageHero
-        eyebrow="Olympiads"
-        title="Olympiads that go beyond the textbook"
-        intro="Grade-specific papers that reward understanding and reasoning. Top performers of each grade qualify for Level 2."
-      />
+      <PageHero eyebrow="Olympiads" title="Olympiads that go beyond the textbook" intro="Grade-specific papers that reward understanding, speed and reasoning." />
       <section className="bg-surface py-14 sm:py-16">
-        <div className="container-page grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {olympiads.map((c) => <CompetitionCard key={c.slug} c={c} />)}
+        <div className="container-page">
+          {items.length ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{items.map((c) => <CompetitionCard key={c.slug} c={c} />)}</div>
+          ) : (
+            <Notice title="Olympiads will be announced soon">Check back for this season&apos;s olympiads.</Notice>
+          )}
         </div>
       </section>
     </>

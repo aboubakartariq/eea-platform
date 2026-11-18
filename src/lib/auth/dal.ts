@@ -32,7 +32,7 @@ export const can = (user: SessionUser, permission: Permission) => user.permissio
 /** For admin pages and actions. Redirects when the user lacks the permission. */
 export async function requirePermission(permission: Permission): Promise<SessionUser> {
   const user = await requireUser();
-  if (!user.isStaff) redirect("/login");
+  if (!user.isStaff) redirect(homeFor(user));
   if (!can(user, permission)) redirect(`/admin/no-access?need=${encodeURIComponent(permission)}`);
   return user;
 }

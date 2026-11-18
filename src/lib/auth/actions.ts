@@ -39,6 +39,9 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   if (!allowed) return { error: "Too many sign-in attempts. Please wait 15 minutes and try again." };
 
   const user = await db.query.users.findFirst({ where: sql`lower(${schema.users.email}) = ${email}` });
+  if (user?.status === "pending" && user.passwordHash && (await verifyPassword(user.passwordHash, password))) {
+    return { error: "Your school's registration is still being reviewed. You can sign in as soon as EEA approves it." };
+  }
   if (!user || user.status !== "active" || !user.passwordHash) {
     await verifyPassword(await getDummyHash(), password); // keep timing similar for unknown emails
     await audit({ action: "login.failed", entityType: "user", entityId: user?.id, after: { email, reason: user ? user.status : "unknown_email" } });

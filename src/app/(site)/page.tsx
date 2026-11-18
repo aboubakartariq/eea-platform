@@ -15,16 +15,14 @@ import {
   Trophy,
   UserPlus,
 } from "lucide-react";
-import { activities, competitions, olympiads } from "@/content/competitions";
+import { byExamDate, getPublishedCompetitions } from "@/lib/competitions";
 import { generalFaqs, news, testimonials } from "@/content/general";
-import { CompetitionCard, CompetitionIcon } from "@/components/competition-card";
+import { CompetitionCard } from "@/components/competition-card";
 import { LinkButton } from "@/components/ui/button";
 import { Faq, SectionHeading } from "@/components/ui/misc";
 import { Reveal } from "@/components/reveal";
 import { formatDate, formatShortDate } from "@/lib/utils";
 
-const upcoming = [...competitions].sort((a, b) => a.examDate.localeCompare(b.examDate));
-const next = upcoming[0];
 
 const steps = [
   { icon: UserPlus, title: "Register", text: "Schools register their students in bulk; students can also register on their own." },
@@ -42,7 +40,9 @@ const reasons = [
   { icon: Award, title: "Meaningful awards", text: "Trophies, medals and merit certificates that recognise real effort." },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const upcoming = (await getPublishedCompetitions()).sort(byExamDate);
+  const next = upcoming.find((c) => c.examDate);
   return (
     <>
       {/* Hero */}
@@ -94,7 +94,7 @@ export default function Home() {
                 <span>
                   <span className="block text-xs text-muted">Next competition</span>
                   <span className="block text-sm font-semibold text-navy-900">
-                    {next.name} · {formatShortDate(next.examDate)}
+                    {next.name} · {formatShortDate(next.examDate!)}
                   </span>
                 </span>
               </Link>
@@ -111,46 +111,15 @@ export default function Home() {
       <section className="bg-surface py-20 sm:py-24">
         <div className="container-page">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="Upcoming" title="Upcoming competitions" intro="Register before the deadline. Each competition has its own syllabus, sample papers and practice tests." />
+            <SectionHeading eyebrow="Competitions" title="Our olympiads" intro="Each competition has its own syllabus, rules and awards. Grades, fees and dates are published on each page." />
             <LinkButton href="/competitions" variant="outline">
               All competitions <ArrowRight className="size-4" aria-hidden />
             </LinkButton>
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.slice(0, 3).map((c, i) => (
+          <div className={`mt-12 grid gap-6 sm:grid-cols-2 ${upcoming.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+            {upcoming.slice(0, 6).map((c, i) => (
               <Reveal key={c.slug} delay={i * 0.06}>
                 <CompetitionCard c={c} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      <section className="py-20 sm:py-24">
-        <div className="container-page">
-          <SectionHeading eyebrow="Categories" title="Something for every kind of talent" align="center" />
-          <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            {[
-              { title: "Olympiads", href: "/olympiads", text: "Subject competitions that stretch students beyond the textbook.", items: olympiads, tone: "bg-navy-600 text-white", sub: "text-navy-100" },
-              { title: "Extracurricular", href: "/activities", text: "Creative and skills-based events, from art to spelling and quizzes.", items: activities, tone: "bg-gold-50 text-navy-900", sub: "text-muted" },
-            ].map((cat, i) => (
-              <Reveal key={cat.title} delay={i * 0.08}>
-                <Link href={cat.href} className={`group block h-full rounded-[1.75rem] p-8 sm:p-10 ${cat.tone}`}>
-                  <h3 className={`text-3xl font-bold ${i === 0 ? "text-white" : ""}`}>{cat.title}</h3>
-                  <p className={`mt-3 max-w-md text-lg ${cat.sub}`}>{cat.text}</p>
-                  <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-                    {cat.items.map((c) => (
-                      <li key={c.slug} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${i === 0 ? "bg-white/10" : "bg-white"}`}>
-                        <CompetitionIcon c={c} className="size-10 rounded-xl" />
-                        <span className="font-semibold">{c.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <span className="mt-8 inline-flex items-center gap-2 font-semibold">
-                    Explore {cat.title.toLowerCase()} <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden />
-                  </span>
-                </Link>
               </Reveal>
             ))}
           </div>

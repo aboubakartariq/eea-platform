@@ -8,13 +8,16 @@ import { sql } from "drizzle-orm";
 import {
   bigserial,
   boolean,
+  date,
   index,
   inet,
   integer,
   jsonb,
   pgEnum,
+  pgSequence,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -207,6 +210,165 @@ export const contactEnquiries = pgTable(
     ...timestamps,
   },
   (t) => [index("enquiries_status_idx").on(t.status, t.createdAt)],
+);
+
+/* ------------------------------------------------------------ Competitions */
+
+export const competitionStatus = pgEnum("competition_status", ["draft", "published", "archived"]);
+export const competitionKind = pgEnum("competition_kind", ["olympiad", "activity"]);
+
+export type CompetitionContent = {
+  overview?: string;
+  objectives?: string[];
+  eligibility?: string[];
+  format?: { label: string; value: string }[];
+  syllabus?: { band: string; topics: string[] }[];
+  rules?: string[];
+  awards?: { title: string; detail: string }[];
+  faqs?: { q: string; a: string }[];
+};
+
+export const competitions = pgTable(
+  "competitions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: varchar("slug", { length: 80 }).notNull().unique(),
+    name: varchar("name", { length: 120 }).notNull(),
+    code: varchar("code", { length: 8 }).notNull().unique(),
+    kind: competitionKind("kind").notNull().default("olympiad"),
+    accent: varchar("accent", { length: 12 }).notNull().default("blue"),
+    icon: varchar("icon", { length: 16 }).notNull().default("book"),
+    summary: varchar("summary", { length: 240 }).notNull().default(""),
+    /** 0 = KG. Null until EEA sets it; registration stays closed meanwhile. */
+    gradeFrom: smallint("grade_from"),
+    gradeTo: smallint("grade_to"),
+    modes: text("modes").array().notNull().default(sql`ARRAY['online','paper']::text[]`),
+    levels: smallint("levels").notNull().default(1),
+    durationMinutes: smallint("duration_minutes"),
+    feePkr: integer("fee_pkr"),
+    registrationCloses: date("registration_closes"),
+    examDate: date("exam_date"),
+    status: competitionStatus("status").notNull().default("draft"),
+    sortOrder: smallint("sort_order").notNull().default(0),
+    content: jsonb("content").$type<CompetitionContent>().notNull().default({}),
+    ...timestamps,
+  },
+  (t) => [index("competitions_status_idx").on(t.status)],
+);
+
+/* ---------------------------------------------------------------- Students */
+
+export const studentCodeSeq = pgSequence("student_code_seq", { startWith: 100001 });
+export const schoolCodeSeq = pgSequence("school_code_seq", { startWith: 101 });
+export const registrationRefSeq = pgSequence("registration_ref_seq", { startWith: 100001 });
+
+export const students = pgTable(
+  "students",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "restrict" }),
+    campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
+    /** Public student ID, e.g. EEA-S-100245. */
+    code: varchar("code", { length: 16 }).notNull().unique(),
+    firstName: varchar("first_name", { length: 60 }).notNull(),
+    lastName: varchar("last_name", { length: 60 }).notNull(),
+    gender: varchar("gender", { length: 8 }),
+    dateOfBirth: date("date_of_birth").notNull(),
+    grade: smallint("grade").notNull(),
+    section: varchar("section", { length: 20 }),
+    guardianName: varchar("guardian_name", { length: 120 }).notNull(),
+    guardianPhone: varchar("guardian_phone", { length: 20 }).notNull(),
+    guardianEmail: varchar("guardian_email", { length: 254 }),
+    archived: boolean("archived").notNull().default(false),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [
+    index("students_school_grade_idx").on(t.schoolId, t.grade),
+    // Duplicate guard: same school, same name, same date of birth.
+    uniqueIndex("students_dedupe_idx").on(t.schoolId, sql`lower(${t.firstName})`, sql`lower(${t.lastName})`, t.dateOfBirth),
+  ],
+);
+
+export const bulkImports = pgTable("bulk_imports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  schoolId: uuid("school_id")
+    .notNull()
+    .references(() => schools.id, { onDelete: "cascade" }),
+  uploadedBy: uuid("uploaded_by").references(() => users.id, { onDelete: "set null" }),
+  fileName: varchar("file_name", { length: 200 }).notNull(),
+  status: varchar("status", { length: 16 }).notNull().default("previewed"), // previewed | imported | cancelled
+  totalRows: integer("total_rows").notNull().default(0),
+  validRows: integer("valid_rows").notNull().default(0),
+  errorRows: integer("error_rows").notNull().default(0),
+  duplicateRows: integer("duplicate_rows").notNull().default(0),
+  importedRows: integer("imported_rows").notNull().default(0),
+  createdAt: timestamps.createdAt,
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+export const importRows = pgTable(
+  "import_rows",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    importId: uuid("import_id")
+      .notNull()
+      .references(() => bulkImports.id, { onDelete: "cascade" }),
+    rowNumber: integer("row_number").notNull(),
+    data: jsonb("data").$type<Record<string, string | number | null>>().notNull(),
+    errors: jsonb("errors").$type<string[]>().notNull().default([]),
+    status: varchar("status", { length: 12 }).notNull(), // valid | error | duplicate | imported
+    studentId: uuid("student_id").references(() => students.id, { onDelete: "set null" }),
+  },
+  (t) => [index("import_rows_import_idx").on(t.importId, t.rowNumber)],
+);
+
+/* ----------------------------------------------------------- Registrations */
+
+export const registrationStatus = pgEnum("registration_status", ["pending_payment", "confirmed", "cancelled"]);
+
+export const registrations = pgTable(
+  "registrations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** e.g. REG-2027-100245 */
+    reference: varchar("reference", { length: 24 }).notNull().unique(),
+    schoolId: uuid("school_id")
+      .notNull()
+      .references(() => schools.id, { onDelete: "restrict" }),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    mode: varchar("mode", { length: 8 }).notNull(), // online | paper
+    status: registrationStatus("status").notNull().default("pending_payment"),
+    feePkr: integer("fee_pkr").notNull(),
+    studentCount: integer("student_count").notNull(),
+    totalPkr: integer("total_pkr").notNull(),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [index("registrations_school_idx").on(t.schoolId), index("registrations_competition_idx").on(t.competitionId)],
+);
+
+export const registrationItems = pgTable(
+  "registration_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    registrationId: uuid("registration_id")
+      .notNull()
+      .references(() => registrations.id, { onDelete: "cascade" }),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "restrict" }),
+    grade: smallint("grade").notNull(),
+  },
+  // A student can be registered for a competition only once.
+  (t) => [uniqueIndex("registration_items_unique_idx").on(t.competitionId, t.studentId)],
 );
 
 export type User = typeof users.$inferSelect;

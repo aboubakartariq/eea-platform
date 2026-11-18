@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Competition } from "@/content/competitions";
+import { isEligible, type PublicCompetition } from "@/lib/competition-types";
 import { CompetitionCard } from "@/components/competition-card";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +23,9 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
-export function CompetitionsBrowser({ items }: { items: Competition[] }) {
-  const [kind, setKind] = useState<"all" | Competition["kind"]>("all");
-  const [mode, setMode] = useState<"all" | "Online" | "Paper">("all");
+export function CompetitionsBrowser({ items }: { items: PublicCompetition[] }) {
+  const [kind, setKind] = useState<"all" | PublicCompetition["kind"]>("all");
+  const [mode, setMode] = useState<"all" | "online" | "paper">("all");
   const [grade, setGrade] = useState<number | "all">("all");
 
   const filtered = useMemo(
@@ -33,8 +33,7 @@ export function CompetitionsBrowser({ items }: { items: Competition[] }) {
       items
         .filter((c) => kind === "all" || c.kind === kind)
         .filter((c) => mode === "all" || c.modes.includes(mode))
-        .filter((c) => grade === "all" || (grade >= c.grades.from && grade <= c.grades.to))
-        .sort((a, b) => a.examDate.localeCompare(b.examDate)),
+        .filter((c) => grade === "all" || c.gradeFrom == null || isEligible(c, grade)),
     [items, kind, mode, grade],
   );
 
@@ -50,8 +49,8 @@ export function CompetitionsBrowser({ items }: { items: Competition[] }) {
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-2 w-16 text-sm font-semibold text-navy-900">Mode</span>
           <Chip active={mode === "all"} onClick={() => setMode("all")}>Any</Chip>
-          <Chip active={mode === "Online"} onClick={() => setMode("Online")}>Online</Chip>
-          <Chip active={mode === "Paper"} onClick={() => setMode("Paper")}>Paper</Chip>
+          <Chip active={mode === "online"} onClick={() => setMode("online")}>Online</Chip>
+          <Chip active={mode === "paper"} onClick={() => setMode("paper")}>Paper</Chip>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label htmlFor="grade" className="mr-2 w-16 text-sm font-semibold text-navy-900">Grade</label>

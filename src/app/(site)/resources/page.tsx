@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { competitions } from "@/content/competitions";
+import { getPublishedCompetitions } from "@/lib/competitions";
+import { gradesLabel } from "@/lib/competition-types";
 import { CompetitionIcon } from "@/components/competition-card";
 import { Notice, PageHero } from "@/components/ui/misc";
 
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
   description: "Syllabi, sample papers and practice tests for every EEA competition.",
 };
 
-export default function ResourcesPage() {
+export default async function ResourcesPage() {
+  const competitions = await getPublishedCompetitions();
   return (
     <>
       <PageHero
@@ -39,7 +41,7 @@ export default function ResourcesPage() {
                         <span className="font-semibold text-navy-900">{c.name}</span>
                       </div>
                     </td>
-                    <td className="hidden p-4 text-muted sm:table-cell">{c.grades.label}</td>
+                    <td className="hidden p-4 text-muted sm:table-cell">{gradesLabel(c)}</td>
                     <td className="p-4">
                       <Link href={`/competitions/${c.slug}#syllabus`} className="inline-flex items-center gap-1 font-semibold text-navy-600 hover:underline">
                         View <ArrowRight className="size-4" aria-hidden />

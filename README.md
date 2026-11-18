@@ -10,8 +10,8 @@ The full plan (sitemap, architecture, database, roadmap) lives in the *EEA Platf
 | --- | --- | --- |
 | 1 | Research, sitemap, architecture, roadmap | Done (plan doc) |
 | 2 | Design system and public website | Done |
-| 3 | Database, logins, roles, audit log | **In review** |
-| 4 | School, student and parent portals | Not started |
+| 3 | Database, logins, roles, audit log | Done |
+| 4 | School, student and parent portals | **School portal in review**; student and parent portals next |
 | 5 | Question bank, paper generator, exam engine | Not started |
 | 6 | Results, rankings, certificates, awards | Not started |
 | 7 | Payments, finance, messaging, CMS | Not started |
@@ -50,6 +50,25 @@ They are built in Phases 3–6 with real database operations.
 - [ ] Two-step recovery codes (an administrator can reset two-step verification meanwhile)
 - [ ] Password reset by email (needs the email provider, Phase 7)
 - [ ] Redis rate limiting and nonce-based CSP before launch
+
+### Phase 4 checklist (school portal)
+
+- [x] EEA's four competitions in the database: Mental Math, English, Science and Brain Olympiads
+- [x] Admin competition editor: grades, fee, dates, exam modes, levels, page content; draft / published / archived
+- [x] Public competition pages read from the database and refresh when staff save; missing details show "To be announced"
+- [x] Registration opens only when a competition is published and has grades, fee, exam date and a future closing date
+- [x] School self-registration with coordinator account; pending until approved
+- [x] Admin school review: approve (issues school ID such as EEA-LAH-00101), reject, suspend, reinstate
+- [x] School portal: overview, students, competition registration, registrations with totals
+- [x] Bulk Excel import: template download, upload up to 2,000 rows, every row checked, duplicates detected (in file and against existing students), preview before saving, import history
+- [x] Students added one by one; student IDs (EEA-S-…)
+- [x] Registration: eligible grades only, select by grade, online or paper mode, reference number (REG-2027-…), fee total; no student registered twice
+- [x] Schools see only their own data (tested)
+- [x] Admin: schools, students and registrations lists; dashboard figures
+- [x] Tests: 19 unit tests, 25-step school portal browser test, 25-step sign-in browser test
+- [ ] Student and parent portals, individual registration
+- [ ] Admit cards and roll numbers (after payment is confirmed; payments in Phase 7)
+- [ ] Multiple campuses and extra school staff accounts in the portal
 
 ## Run locally
 
