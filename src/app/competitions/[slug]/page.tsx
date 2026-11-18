@@ -16,7 +16,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const c = getCompetition(slug);
-  if (!c) return {};
+  if (!c) notFound();
   return { title: c.name, description: `${c.summary} ${c.grades.label}. ${c.modes.join(" and ")} exam.` };
 }
 
