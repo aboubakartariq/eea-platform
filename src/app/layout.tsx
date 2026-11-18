@@ -1,14 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
 import "@fontsource/montserrat/500.css";
 import "@fontsource/montserrat/600.css";
 import "@fontsource/montserrat/700.css";
 import "@fontsource-variable/inter";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { site } from "@/lib/site";
-import { hasDemoContent } from "@/content/competitions";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -34,22 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="flex min-h-dvh flex-col">
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-navy-600 focus:px-4 focus:py-2 focus:text-white">
-          Skip to content
-        </a>
-        {site.previewNotice && hasDemoContent && (
-          <div className="bg-amber-50 text-center text-xs font-medium text-amber-900">
-            <p className="container-page py-2">
-              Preview website: competitions, fees and dates shown are samples for review.{" "}
-              <Link href="/about" className="underline underline-offset-2">About EEA</Link>
-            </p>
-          </div>
-        )}
-        <Header />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        {children}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       </body>
     </html>
