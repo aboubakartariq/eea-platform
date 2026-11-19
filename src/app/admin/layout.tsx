@@ -62,8 +62,8 @@ const navSkeleton = (
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex min-h-dvh bg-surface">
-      <aside className="sticky top-0 hidden h-dvh w-68 shrink-0 flex-col border-r border-line bg-white lg:flex">
+    <div className="flex min-h-dvh bg-surface print:bg-white">
+      <aside className="sticky top-0 print:hidden hidden h-dvh w-68 shrink-0 flex-col border-r border-line bg-white lg:flex">
         <Link href="/admin" className="flex h-16 items-center gap-3 border-b border-line px-5">
           <Image src="/brand/eea-seal.svg" alt="" width={36} height={36} />
           <span className="font-display text-sm font-bold text-navy-800">EEA Admin</span>
@@ -78,12 +78,12 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur sm:px-6">
+        <header className="print:hidden sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur sm:px-6">
           <Suspense fallback={<div className="ml-auto h-9 w-40 animate-pulse rounded-full bg-surface" />}>
             <TopBar />
           </Suspense>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 print:p-0">{children}</main>
       </div>
     </div>
   );

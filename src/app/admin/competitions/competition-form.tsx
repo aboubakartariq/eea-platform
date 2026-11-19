@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormAction } from "@/lib/use-form-action";
 import { vals } from "@/lib/form-values";
 import { saveCompetitionAction } from "./actions";
 import { Field, FormMessage, SubmitButton, TextArea } from "@/components/ui/form";
@@ -37,14 +37,14 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 }
 
 export function CompetitionForm({ values: initial, canPublish }: { values: CompetitionFormValues; canPublish: boolean }) {
-  const [state, action] = useActionState(saveCompetitionAction, undefined);
+  const [state, action, , errorKey] = useFormAction(saveCompetitionAction);
   // After an error, show what was submitted rather than the last saved version.
   const values: CompetitionFormValues = state?.values && state.error
     ? { ...initial, ...Object.fromEntries(Object.entries(state.values).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])), modes: vals(state.values, "modes") }
     : initial;
   const e = state?.fieldErrors ?? {};
   return (
-    <form action={action} className="space-y-6">
+    <form key={errorKey} action={action} className="space-y-6">
       {values.id && <input type="hidden" name="id" value={values.id} />}
       <FormMessage error={state?.error} ok={state?.ok} />
 

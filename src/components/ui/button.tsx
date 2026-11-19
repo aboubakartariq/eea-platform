@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "gold" | "outline" | "ghost" | "white";
-type Size = "md" | "lg";
+type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary: "bg-navy-600 text-white hover:bg-navy-700 shadow-sm shadow-navy-900/10",
@@ -13,6 +13,7 @@ const variants: Record<Variant, string> = {
   white: "bg-white text-navy-800 hover:bg-navy-50",
 };
 const sizes: Record<Size, string> = {
+  sm: "h-9 px-4 text-sm",
   md: "h-11 px-5 text-sm",
   lg: "h-13 px-7 text-base",
 };

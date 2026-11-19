@@ -1,18 +1,19 @@
 "use client";
 
+import { useFormAction } from "@/lib/use-form-action";
 import { val } from "@/lib/form-values";
-import { useActionState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { addStudentAction } from "../actions";
 import { Field, FormMessage, SubmitButton } from "@/components/ui/form";
 
 const grades = [["0", "KG"], ...Array.from({ length: 12 }, (_, i) => [String(i + 1), `Grade ${i + 1}`])];
 
 export function NewStudentForm() {
-  const [state, action] = useActionState(addStudentAction, undefined);
+  const [state, action, , errorKey] = useFormAction(addStudentAction);
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => { if (state?.ok) ref.current?.reset(); }, [state]);
   return (
-    <form ref={ref} action={action} className="space-y-5">
+    <form key={errorKey} ref={ref} action={action} className="space-y-5">
       <FormMessage error={state?.error} ok={state?.ok} />
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="First name" name="firstName" defaultValue={val(state?.values, "firstName")} required maxLength={60} />

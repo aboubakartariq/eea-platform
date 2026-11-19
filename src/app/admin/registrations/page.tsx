@@ -24,7 +24,7 @@ export default async function RegistrationsAdmin() {
   ]);
   return (
     <>
-      <PageHeader title="Registrations" description="Competition registrations from schools and parents. Payment collection and confirmation arrive with the finance module." />
+      <PageHeader title="Registrations" description="Competition registrations from schools and parents. Open a registration to record a bank transfer, cash or cheque payment and confirm it. Online payment arrives with the finance module." />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Awaiting payment" value={totals.n} hint={`${Number(totals.students ?? 0)} students`} />
         <StatCard label="Amount due" value={formatPKR(Number(totals.amount ?? 0))} />
@@ -38,7 +38,7 @@ export default async function RegistrationsAdmin() {
               <tbody className="divide-y divide-line">
                 {rows.map((r) => (
                   <tr key={r.id} className="hover:bg-surface/50">
-                    <td className={`${td} font-mono text-xs`}>{r.reference}</td>
+                    <td className={`${td} font-mono text-xs`}><Link href={`/admin/registrations/${r.id}`} className="font-semibold text-navy-700 hover:underline">{r.reference}</Link></td>
                     <td className={td}>{r.schoolId ? <Link href={`/admin/schools/${r.schoolId}`} className="font-medium text-navy-900 hover:underline">{r.school}</Link> : <span>Individual <span className="text-xs text-muted">· parent {r.parent}</span></span>}</td>
                     <td className={td}>{r.competition} <span className="text-xs text-muted capitalize">· {r.mode}</span></td>
                     <td className={`${td} tabular-nums`}>{r.students}</td>

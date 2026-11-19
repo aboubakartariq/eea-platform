@@ -14,6 +14,7 @@ import {
   inet,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgSequence,
   pgTable,
@@ -405,6 +406,232 @@ export const registrationItems = pgTable(
   // A student can be registered for a competition only once.
   (t) => [uniqueIndex("registration_items_unique_idx").on(t.competitionId, t.studentId)],
 );
+
+/* ----------------------------------------------------------- Question bank */
+
+export const questionType = pgEnum("question_type", ["single", "multiple", "true_false", "numeric", "short"]);
+export const questionDifficulty = pgEnum("question_difficulty", ["easy", "medium", "hard"]);
+export const questionStatus = pgEnum("question_status", ["draft", "review", "approved", "retired"]);
+
+export type QuestionOption = { id: string; text: string };
+/** The correct answer. Never sent to a student's browser. */
+export type QuestionAnswer = { options?: string[]; value?: number; tolerance?: number; accepted?: string[] };
+
+export const questionCodeSeq = pgSequence("question_code_seq", { startWith: 100001 });
+
+export const questions = pgTable(
+  "questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** e.g. Q-100245 */
+    code: varchar("code", { length: 16 }).notNull().unique(),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    gradeFrom: smallint("grade_from").notNull(),
+    gradeTo: smallint("grade_to").notNull(),
+    level: smallint("level").notNull().default(1),
+    type: questionType("type").notNull(),
+    stem: text("stem").notNull(),
+    options: jsonb("options").$type<QuestionOption[]>().notNull().default([]),
+    answer: jsonb("answer").$type<QuestionAnswer>().notNull(),
+    explanation: text("explanation"),
+    topic: varchar("topic", { length: 80 }).notNull(),
+    difficulty: questionDifficulty("difficulty").notNull(),
+    tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+    marks: smallint("marks").notNull().default(1),
+    status: questionStatus("status").notNull().default("draft"),
+    version: integer("version").notNull().default(1),
+    source: varchar("source", { length: 12 }).notNull().default("manual"), // manual | excel
+    reviewNote: text("review_note"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "set null" }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    index("questions_pick_idx").on(t.competitionId, t.status, t.level),
+    check("questions_grades_check", sql`${t.gradeFrom} <= ${t.gradeTo}`),
+  ],
+);
+
+/** Every saved version of a question, for history and for papers made from it. */
+export const questionVersions = pgTable(
+  "question_versions",
+  {
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    snapshot: jsonb("snapshot").$type<QuestionSnapshot>().notNull(),
+    changedBy: uuid("changed_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [primaryKey({ columns: [t.questionId, t.version] })],
+);
+
+export type QuestionSnapshot = {
+  type: (typeof questionType.enumValues)[number];
+  stem: string;
+  options: QuestionOption[];
+  answer: QuestionAnswer;
+  explanation: string | null;
+  topic: string;
+  difficulty: (typeof questionDifficulty.enumValues)[number];
+  marks: number;
+  gradeFrom: number;
+  gradeTo: number;
+  level: number;
+  tags: string[];
+};
+
+/* ------------------------------------------------------------------ Papers */
+
+export const paperStatus = pgEnum("paper_status", ["draft", "final"]);
+export type BlueprintRow = { topic: string | null; difficulty: "easy" | "medium" | "hard" | null; count: number };
+
+export const paperCodeSeq = pgSequence("paper_code_seq", { startWith: 1001 });
+
+export const papers = pgTable("papers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  /** e.g. P-MMO-1001 */
+  code: varchar("code", { length: 20 }).notNull().unique(),
+  competitionId: uuid("competition_id")
+    .notNull()
+    .references(() => competitions.id, { onDelete: "restrict" }),
+  title: varchar("title", { length: 160 }).notNull(),
+  gradeFrom: smallint("grade_from").notNull(),
+  gradeTo: smallint("grade_to").notNull(),
+  level: smallint("level").notNull().default(1),
+  durationMinutes: smallint("duration_minutes").notNull(),
+  instructions: text("instructions"),
+  /** Percentage of a question's marks taken off for a wrong (not blank) answer. */
+  negativePercent: smallint("negative_percent").notNull().default(0),
+  shuffleQuestions: boolean("shuffle_questions").notNull().default(true),
+  shuffleOptions: boolean("shuffle_options").notNull().default(true),
+  /** Printed versions (A, B, C…) with different question order. */
+  printSets: smallint("print_sets").notNull().default(1),
+  blueprint: jsonb("blueprint").$type<BlueprintRow[]>().notNull(),
+  seed: integer("seed").notNull(),
+  totalMarks: integer("total_marks").notNull().default(0),
+  status: paperStatus("status").notNull().default("draft"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  finalisedBy: uuid("finalised_by").references(() => users.id, { onDelete: "set null" }),
+  finalisedAt: timestamp("finalised_at", { withTimezone: true }),
+  ...timestamps,
+});
+
+/** The questions on a paper, frozen as they were when added. Later edits to the bank do not change a paper. */
+export const paperQuestions = pgTable(
+  "paper_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    paperId: uuid("paper_id")
+      .notNull()
+      .references(() => papers.id, { onDelete: "cascade" }),
+    position: smallint("position").notNull(),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => questions.id, { onDelete: "restrict" }),
+    questionVersion: integer("question_version").notNull(),
+    snapshot: jsonb("snapshot").$type<QuestionSnapshot>().notNull(),
+  },
+  (t) => [uniqueIndex("paper_questions_unique_idx").on(t.paperId, t.questionId), index("paper_questions_paper_idx").on(t.paperId, t.position)],
+);
+
+/* ------------------------------------------------------------ Online exams */
+
+export const examSessionStatus = pgEnum("exam_session_status", ["scheduled", "cancelled"]);
+export const attemptStatus = pgEnum("attempt_status", ["in_progress", "submitted"]);
+
+/** A time window in which eligible students can sit a final paper online. */
+export const examSessions = pgTable("exam_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  paperId: uuid("paper_id")
+    .notNull()
+    .references(() => papers.id, { onDelete: "restrict" }),
+  competitionId: uuid("competition_id")
+    .notNull()
+    .references(() => competitions.id, { onDelete: "restrict" }),
+  title: varchar("title", { length: 160 }).notNull(),
+  opensAt: timestamp("opens_at", { withTimezone: true }).notNull(),
+  closesAt: timestamp("closes_at", { withTimezone: true }).notNull(),
+  status: examSessionStatus("status").notNull().default("scheduled"),
+  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+}, (t) => [check("exam_sessions_window_check", sql`${t.opensAt} < ${t.closesAt}`), index("exam_sessions_competition_idx").on(t.competitionId)]);
+
+export type AttemptOrderItem = { pq: string; opts: string[] };
+export type AttemptResponse = { options?: string[]; text?: string };
+
+export const examAttempts = pgTable(
+  "exam_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => examSessions.id, { onDelete: "restrict" }),
+    paperId: uuid("paper_id")
+      .notNull()
+      .references(() => papers.id, { onDelete: "restrict" }),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "restrict" }),
+    /** Question and option order for this student. */
+    questionOrder: jsonb("question_order").$type<AttemptOrderItem[]>().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Set by the server at start; answers after this are refused. */
+    deadlineAt: timestamp("deadline_at", { withTimezone: true }).notNull(),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    submittedReason: varchar("submitted_reason", { length: 12 }), // student | time | staff
+    status: attemptStatus("status").notNull().default("in_progress"),
+    score: numeric("score", { precision: 8, scale: 2 }),
+    maxScore: integer("max_score").notNull(),
+    correctCount: integer("correct_count"),
+    focusLost: integer("focus_lost").notNull().default(0),
+    lastSavedAt: timestamp("last_saved_at", { withTimezone: true }),
+    ip: inet("ip"),
+    userAgent: text("user_agent"),
+  },
+  // One sitting per student per competition.
+  (t) => [uniqueIndex("exam_attempts_student_idx").on(t.competitionId, t.studentId), index("exam_attempts_session_idx").on(t.sessionId)],
+);
+
+export const attemptAnswers = pgTable(
+  "attempt_answers",
+  {
+    attemptId: uuid("attempt_id")
+      .notNull()
+      .references(() => examAttempts.id, { onDelete: "cascade" }),
+    paperQuestionId: uuid("paper_question_id")
+      .notNull()
+      .references(() => paperQuestions.id, { onDelete: "restrict" }),
+    response: jsonb("response").$type<AttemptResponse>().notNull(),
+    flagged: boolean("flagged").notNull().default(false),
+    savedAt: timestamp("saved_at", { withTimezone: true }).notNull().defaultNow(),
+    correct: boolean("correct"),
+    marksAwarded: numeric("marks_awarded", { precision: 6, scale: 2 }),
+  },
+  (t) => [primaryKey({ columns: [t.attemptId, t.paperQuestionId] })],
+);
+
+/** Payments recorded by finance staff (bank transfer, cash, cheque) until online payments arrive. */
+export const manualPayments = pgTable("manual_payments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registrationId: uuid("registration_id")
+    .notNull()
+    .references(() => registrations.id, { onDelete: "restrict" }),
+  method: varchar("method", { length: 16 }).notNull(), // bank_transfer | cash | cheque
+  reference: varchar("reference", { length: 80 }).notNull(),
+  amountPkr: integer("amount_pkr").notNull(),
+  receivedOn: date("received_on").notNull(),
+  recordedBy: uuid("recorded_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamps.createdAt,
+});
 
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;

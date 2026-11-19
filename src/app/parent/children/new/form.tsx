@@ -1,7 +1,7 @@
 "use client";
 
+import { useFormAction } from "@/lib/use-form-action";
 import { val } from "@/lib/form-values";
-import { useActionState } from "react";
 import { addChildAction } from "../../actions";
 import { Field, FormMessage, SubmitButton } from "@/components/ui/form";
 
@@ -9,9 +9,9 @@ const grades = [["0", "KG"], ...Array.from({ length: 12 }, (_, i) => [String(i +
 const select = "mt-1.5 h-12 w-full rounded-xl border border-line bg-white px-3 text-[15px] outline-none focus:border-navy-600";
 
 export function AddChildForm() {
-  const [state, action] = useActionState(addChildAction, undefined);
+  const [state, action, , errorKey] = useFormAction(addChildAction);
   return (
-    <form action={action} className="space-y-5">
+    <form key={errorKey} action={action} className="space-y-5">
       <FormMessage error={state?.error} />
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="First name" name="firstName" defaultValue={val(state?.values, "firstName")} required maxLength={60} />

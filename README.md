@@ -11,8 +11,8 @@ The full plan (sitemap, architecture, database, roadmap) lives in the *EEA Platf
 | 1 | Research, sitemap, architecture, roadmap | Done (plan doc) |
 | 2 | Design system and public website | Done |
 | 3 | Database, logins, roles, audit log | Done |
-| 4 | School, student and parent portals | **In review** |
-| 5 | Question bank, paper generator, exam engine | Not started |
+| 4 | School, student and parent portals | Done |
+| 5 | Question bank, paper generator, exam engine | **In review** |
 | 6 | Results, rankings, certificates, awards | Not started |
 | 7 | Payments, finance, messaging, CMS | Not started |
 | 8 | Analytics, testing, launch | Not started |
@@ -65,7 +65,6 @@ They are built in Phases 3–6 with real database operations.
 - [x] Registration: eligible grades only, select by grade, online or paper mode, reference number (REG-2027-…), fee total; no student registered twice
 - [x] Schools see only their own data (tested)
 - [x] Admin: schools, students and registrations lists; dashboard figures
-- [x] Tests: 20 unit tests; browser tests: school portal (25 checks), parents and students (19), sign-in and admin (25)
 - [x] Parent accounts: sign up, link a school-registered child (student ID + date of birth + the parent mobile on the school record), add a child as an individual entrant
 - [x] Individual registration by parents for online competitions; one entry per child per competition, whoever registers
 - [x] Student logins: username is the student ID, created by a parent or the school coordinator; students sign in with their student ID
@@ -74,6 +73,32 @@ They are built in Phases 3–6 with real database operations.
 - [x] Forms keep what people typed when there is an error
 - [ ] Admit cards and roll numbers (after payment is confirmed; payments in Phase 7)
 - [ ] Multiple campuses and extra school staff accounts in the portal
+
+### Phase 5 checklist (question bank and exams)
+
+- [x] Question bank: single choice, multiple choice, true/false, number (with allowed margin), short answer; competition, grades, level, topic, difficulty, marks, tags, explanation
+- [x] Every save keeps a version; history shows who changed what and the answer at each version
+- [x] Review workflow: draft → review → approved; the author of a version cannot approve it (also in bulk); send back with a note; retire and restore
+- [x] Editing an approved question makes a new version that needs approval again; papers keep the version they used
+- [x] Excel import: template with drop-downs and instructions, up to 1,000 questions, every row checked, nothing imported if any row is wrong, imported as drafts
+- [x] Paper generator: pick competition, grades and level, see approved questions by topic and difficulty, build a blueprint, generate at random; shortfalls explained before anything is saved
+- [x] Swap one question, pick a new set, make final (locks questions), reopen only while no session uses it
+- [x] Negative marking, shuffled question and option order online, up to four printed versions (A–D)
+- [x] Printable papers and answer keys (browser Print / Save as PDF); drafts print with a DRAFT mark; answer keys for the exam team only, every view audited
+- [x] Online sessions: a window in Pakistan time; only students with paid online registrations in the paper's grades see them
+- [x] Exam screen: server-set deadline (paper time, never past the session close), countdown, autosave of every answer, retry when offline, mark for review, question map, review before submit
+- [x] Recovery: reloading or reopening continues the same attempt with saved answers; one sitting per student per competition
+- [x] Time out: submits automatically; attempts left open are closed and marked by the server
+- [x] Automatic marking on submission (scores held back until results are published in Phase 6)
+- [x] Staff monitor: eligible, started, writing, submitted; answers saved, last save, times the student left the page; end an attempt
+- [x] Manual payment recording (bank transfer, cash, cheque) by finance staff confirms a registration
+- [x] Students cannot open another student's attempt or any admin page (tested)
+- [x] Tests: 33 unit tests; browser tests: exams (34 checks), school portal (25), parents and students (19), sign-in and admin (25)
+- [ ] Images and formulas in questions (needs file storage)
+- [ ] Server-generated PDF files (today: browser Print / Save as PDF)
+- [ ] Admit cards and roll numbers; paper-exam answer sheet entry (Phase 6, with results)
+- [ ] Practice tests for students
+- [ ] AI-suggested questions (would always arrive as drafts for human approval)
 
 ## Run locally
 
