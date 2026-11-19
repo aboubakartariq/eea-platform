@@ -17,8 +17,9 @@ export async function verifyPassword(stored: string | null | undefined, password
 const COMMON = new Set(["password", "password1", "password123", "1234567890", "12345678910", "qwertyuiop", "pakistan123", "admin12345", "iloveyou12", "welcome123"]);
 
 /** Returns a reason the password is not acceptable, or null if it is fine. */
-export function passwordProblem(password: string, context: { email?: string; name?: string } = {}): string | null {
-  if (password.length < 10) return "Use at least 10 characters.";
+export function passwordProblem(password: string, context: { email?: string; name?: string; minLength?: number } = {}): string | null {
+  const min = context.minLength ?? 10;
+  if (password.length < min) return `Use at least ${min} characters.`;
   if (password.length > 128) return "Use at most 128 characters.";
   if (COMMON.has(password.toLowerCase())) return "This password is too common.";
   const lower = password.toLowerCase();

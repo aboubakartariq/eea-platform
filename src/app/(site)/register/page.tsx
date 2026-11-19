@@ -24,13 +24,13 @@ const paths = [
   {
     id: "individual",
     icon: UserRound,
-    title: "Register as a student",
-    who: "For students whose school is not taking part",
+    title: "For parents",
+    who: "Follow your child, or register them if their school isn't taking part",
     points: [
-      "A parent or guardian creates the account and gives consent",
-      "Choose competitions for the student's grade",
-      "Pay online and receive the admit card by email",
-      "Take online competitions from home",
+      "Create a parent account and give consent for your child",
+      "Already registered by the school? Link your child with their student ID",
+      "Or add your child yourself and choose online competitions for their grade",
+      "Create your child's login for exam day",
     ],
   },
 ];
@@ -57,7 +57,7 @@ export default function RegisterPage() {
                 {p.id === "school" ? (
                   <LinkButton href="/register/school" variant="gold" size="lg" className="mt-8">Register your school</LinkButton>
                 ) : (
-                  <p className="mt-8 rounded-xl bg-surface px-4 py-3 text-sm text-muted">Individual registration opens with the student and parent portals. Until then, ask your school to register you.</p>
+                  <LinkButton href="/register/parent" size="lg" className="mt-8">Create a parent account</LinkButton>
                 )}
               </article>
             ))}

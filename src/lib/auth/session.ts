@@ -21,6 +21,8 @@ export type SessionUser = {
   permissions: Set<string>;
   roles: { key: string; name: string; schoolId: string | null }[];
   isStaff: boolean;
+  /** Student accounts: their student record. */
+  studentId: string | null;
 };
 
 export type SessionState = { sessionId: string; mfaVerified: boolean; user: SessionUser };
@@ -56,7 +58,7 @@ async function loadUser(userId: string): Promise<SessionUser | null> {
   const roles = [...new Map(rows.map((r) => [`${r.key}:${r.schoolId}`, { key: r.key, name: r.name, schoolId: r.schoolId }])).values()];
   return {
     id: user.id,
-    email: user.email,
+    email: user.email ?? user.username ?? "",
     name: user.name,
     kind: user.kind,
     mustChangePassword: user.mustChangePassword,
@@ -64,6 +66,7 @@ async function loadUser(userId: string): Promise<SessionUser | null> {
     permissions,
     roles,
     isStaff: user.kind === "staff",
+    studentId: user.studentId,
   };
 }
 

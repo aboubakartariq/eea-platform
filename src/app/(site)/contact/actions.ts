@@ -1,12 +1,13 @@
 "use server";
 
+import { keepValues, type FormValues } from "@/lib/form-values";
 import { z } from "zod";
 import { db, schema } from "@/db";
 import { audit } from "@/lib/server/audit";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { requestInfo } from "@/lib/server/request";
 
-export type ContactState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> } | undefined;
+export type ContactState = { values?: FormValues; ok?: boolean; error?: string; fieldErrors?: Record<string, string> } | undefined;
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Enter your name.").max(120),
@@ -22,11 +23,11 @@ export async function submitContactAction(_prev: ContactState, formData: FormDat
   if (String(formData.get("website") ?? "").length > 0) return { ok: true };
 
   const parsed = contactSchema.safeParse(Object.fromEntries(["name", "email", "phone", "audience", "subject", "message"].map((k) => [k, formData.get(k) ?? ""])));
-  if (!parsed.success) return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+  if (!parsed.success) return { values: keepValues(formData), fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
 
   const { ip } = await requestInfo();
   if (!(await rateLimit(`contact:${ip ?? "unknown"}`, 5, 60 * 60))) {
-    return { error: "You've sent several messages recently. Please try again in an hour." };
+    return { values: keepValues(formData), error: "You've sent several messages recently. Please try again in an hour." };
   }
   const d = parsed.data;
   const [row] = await db.insert(schema.contactEnquiries).values({ ...d, phone: d.phone || null, ip }).returning({ id: schema.contactEnquiries.id });

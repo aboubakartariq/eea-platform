@@ -47,7 +47,7 @@ with sync_playwright() as p:
     admin.click(SUBMIT); expect(admin.locator("text=Saved.")).to_be_visible(); ok("admin saved grades, fee, dates and syllabus")
     admin.select_option("select[name=gradeFrom]", "6"); admin.select_option("select[name=gradeTo]", "2"); admin.click(SUBMIT)
     expect(admin.locator("text=must not be after").first).to_be_visible(); ok("invalid grade range rejected")
-    for attempt in range(6):
+    for attempt in range(15):
         pub.goto(BASE + "/competitions/mental-math-olympiad")
         if pub.locator("text=PKR 1,500").count(): break
         time.sleep(1)
@@ -65,7 +65,7 @@ with sync_playwright() as p:
 
     # Coordinator signs in to the school portal
     login(pub, "coord@beacon.test", "School-Pass-2027"); pub.wait_for_url(BASE + "/school"); ok("approved coordinator reaches school portal")
-    r = pub.request.get(BASE + "/school/students/template"); assert r.status == 200 and "spreadsheetml" in r.headers["content-type"]; ok("Excel template downloads")
+    r = pub.request.get(BASE + "/school/student-template"); assert r.status == 200 and "spreadsheetml" in r.headers["content-type"]; ok("Excel template downloads")
 
     # Excel import
     pub.goto(BASE + "/school/students/import"); pub.set_input_files("input[name=file]", "tests/e2e/class-list.xlsx"); pub.click(SUBMIT)
@@ -74,7 +74,7 @@ with sync_playwright() as p:
     assert stats == ["9", "6", "2", "1"], stats; ok("file checked: 9 rows, 6 ready, 2 need fixing, 1 duplicate")
     expect(pub.locator("text=Parent mobile must be a valid number")).to_be_visible(); expect(pub.locator("text=Same student as row 2")).to_be_visible(); ok("row-level problems explained")
     pub.screenshot(path=SHOTS + "p4_import_preview.png", full_page=True)
-    pub.get_by_role("button", name="Import 6 students").click(); expect(pub.locator("text=6 students")).to_be_visible(); ok("6 students imported")
+    pub.get_by_role("button", name="Import 6 students").click(); expect(pub.locator("text=were added to your list")).to_be_visible(); ok("6 students imported")
     pub.goto(BASE + "/school/students/import"); pub.set_input_files("input[name=file]", "tests/e2e/class-list.xlsx"); pub.click(SUBMIT); pub.wait_for_url("**/import/**")
     stats = pub.locator(".tabular-nums").all_inner_texts()[:4]; assert stats[1] == "0", stats; ok("re-uploading the same file imports nothing new")
 

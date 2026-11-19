@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Users" };
 export default async function UsersPage() {
   const user = await requirePermission("users.view");
   const rows = await db
-    .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, kind: schema.users.kind, status: schema.users.status, totp: schema.users.totpEnabledAt, lastLoginAt: schema.users.lastLoginAt, role: schema.roles.name })
+    .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, username: schema.users.username, kind: schema.users.kind, status: schema.users.status, totp: schema.users.totpEnabledAt, lastLoginAt: schema.users.lastLoginAt, role: schema.roles.name })
     .from(schema.users)
     .leftJoin(schema.userRoles, eq(schema.userRoles.userId, schema.users.id))
     .leftJoin(schema.roles, eq(schema.roles.id, schema.userRoles.roleId))
@@ -28,7 +28,7 @@ export default async function UsersPage() {
     <>
       <PageHeader
         title="Users"
-        description="Staff accounts and their roles. School, student and parent accounts appear here once the portals open."
+        description="Staff, school, parent and student accounts."
         actions={can(user, "users.manage") && (
           <Link href="/admin/users/new" className={buttonClass("primary", "md")}><Plus className="size-4" aria-hidden /> Add staff member</Link>
         )}
@@ -47,7 +47,7 @@ export default async function UsersPage() {
                   <tr key={u.id} className="hover:bg-surface/50">
                     <td className={td}>
                       <Link href={`/admin/users/${u.id}`} className="font-semibold text-navy-900 hover:underline">{u.name}</Link>
-                      <p className="text-xs text-muted">{u.email}</p>
+                      <p className="text-xs text-muted">{u.email ?? u.username}</p>
                     </td>
                     <td className={`${td} text-muted`}>{u.roles.join(", ") || "—"}</td>
                     <td className={td}>{u.status === "active" ? <Pill tone="green">Active</Pill> : u.status === "disabled" ? <Pill tone="red">Disabled</Pill> : <Pill tone="amber">Pending</Pill>}</td>

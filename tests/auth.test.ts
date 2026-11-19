@@ -71,3 +71,10 @@ describe("encryption and two-factor codes", () => {
     expect(await checkTotp(secret, "12ab56", null)).toBeNull();
   });
 });
+
+describe("student passwords", () => {
+  it("allows 8-character student passwords but keeps 10 for adults", () => {
+    expect(passwordProblem("maths-77", { minLength: 8 })).toBeNull();
+    expect(passwordProblem("maths-77")).toMatch(/10 characters/);
+  });
+});

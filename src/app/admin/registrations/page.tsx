@@ -12,9 +12,10 @@ export default async function RegistrationsAdmin() {
   await requirePermission("registrations.view");
   const [rows, [totals], byCompetition] = await Promise.all([
     db
-      .select({ id: schema.registrations.id, reference: schema.registrations.reference, school: schema.schools.name, schoolId: schema.schools.id, competition: schema.competitions.name, mode: schema.registrations.mode, students: schema.registrations.studentCount, total: schema.registrations.totalPkr, status: schema.registrations.status, createdAt: schema.registrations.createdAt })
+      .select({ id: schema.registrations.id, reference: schema.registrations.reference, school: schema.schools.name, schoolId: schema.schools.id, parent: schema.users.name, competition: schema.competitions.name, mode: schema.registrations.mode, students: schema.registrations.studentCount, total: schema.registrations.totalPkr, status: schema.registrations.status, createdAt: schema.registrations.createdAt })
       .from(schema.registrations)
-      .innerJoin(schema.schools, eq(schema.schools.id, schema.registrations.schoolId))
+      .leftJoin(schema.schools, eq(schema.schools.id, schema.registrations.schoolId))
+      .leftJoin(schema.users, eq(schema.users.id, schema.registrations.guardianUserId))
       .innerJoin(schema.competitions, eq(schema.competitions.id, schema.registrations.competitionId))
       .orderBy(desc(schema.registrations.createdAt))
       .limit(300),
@@ -23,7 +24,7 @@ export default async function RegistrationsAdmin() {
   ]);
   return (
     <>
-      <PageHeader title="Registrations" description="Competition registrations submitted by schools. Payment collection and confirmation arrive with the finance module." />
+      <PageHeader title="Registrations" description="Competition registrations from schools and parents. Payment collection and confirmation arrive with the finance module." />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Awaiting payment" value={totals.n} hint={`${Number(totals.students ?? 0)} students`} />
         <StatCard label="Amount due" value={formatPKR(Number(totals.amount ?? 0))} />
@@ -38,7 +39,7 @@ export default async function RegistrationsAdmin() {
                 {rows.map((r) => (
                   <tr key={r.id} className="hover:bg-surface/50">
                     <td className={`${td} font-mono text-xs`}>{r.reference}</td>
-                    <td className={td}><Link href={`/admin/schools/${r.schoolId}`} className="font-medium text-navy-900 hover:underline">{r.school}</Link></td>
+                    <td className={td}>{r.schoolId ? <Link href={`/admin/schools/${r.schoolId}`} className="font-medium text-navy-900 hover:underline">{r.school}</Link> : <span>Individual <span className="text-xs text-muted">· parent {r.parent}</span></span>}</td>
                     <td className={td}>{r.competition} <span className="text-xs text-muted capitalize">· {r.mode}</span></td>
                     <td className={`${td} tabular-nums`}>{r.students}</td>
                     <td className={`${td} tabular-nums`}>{formatPKR(r.total)}</td>

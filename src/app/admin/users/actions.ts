@@ -1,5 +1,6 @@
 "use server";
 
+import { keepValues, type FormValues } from "@/lib/form-values";
 import { revalidatePath } from "next/cache";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -10,7 +11,7 @@ import { destroyUserSessions } from "@/lib/auth/session";
 import { audit } from "@/lib/server/audit";
 import type { FormState } from "@/lib/auth/actions";
 
-export type UserFormState = ({ error?: string; fieldErrors?: Record<string, string>; ok?: string; tempPassword?: string }) | undefined;
+export type UserFormState = ({ values?: FormValues; error?: string; fieldErrors?: Record<string, string>; ok?: string; tempPassword?: string }) | undefined;
 
 /** Only global (staff) roles can be assigned here; school and family roles are given through the portals. */
 async function staffRoles(ids: string[]) {
@@ -40,15 +41,15 @@ const createSchema = z.object({
 export async function createStaffUserAction(_prev: UserFormState, formData: FormData): Promise<UserFormState> {
   const actor = await assertPermission("users.manage");
   const parsed = createSchema.safeParse({ name: formData.get("name"), email: formData.get("email"), phone: formData.get("phone") ?? "", roleIds: formData.getAll("roleIds") });
-  if (!parsed.success) return { fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+  if (!parsed.success) return { values: keepValues(formData), fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
   const { name, email, phone, roleIds } = parsed.data;
 
   const roles = await staffRoles(roleIds);
-  if (roles.length !== roleIds.length) return { error: "One of the chosen roles can't be given to staff." };
-  if (roles.some((r) => r.key === "super_admin") && !isSuperAdmin(actor)) return { error: "Only a Super Administrator can create another Super Administrator." };
+  if (roles.length !== roleIds.length) return { values: keepValues(formData), error: "One of the chosen roles can't be given to staff." };
+  if (roles.some((r) => r.key === "super_admin") && !isSuperAdmin(actor)) return { values: keepValues(formData), error: "Only a Super Administrator can create another Super Administrator." };
 
   const exists = await db.query.users.findFirst({ where: sql`lower(${schema.users.email}) = ${email}` });
-  if (exists) return { fieldErrors: { email: "A user with this email already exists." } };
+  if (exists) return { values: keepValues(formData), fieldErrors: { email: "A user with this email already exists." } };
 
   const tempPassword = temporaryPassword();
   const user = await db.transaction(async (tx) => {
@@ -66,7 +67,7 @@ export async function updateUserRolesAction(_prev: FormState, formData: FormData
   const userId = z.string().uuid().parse(formData.get("userId"));
   const roleIds = z.array(z.string().uuid()).parse(formData.getAll("roleIds"));
   const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-  if (!target || target.kind !== "staff") return { error: "Staff user not found." };
+  if (!target || target.kind !== "staff") return { values: keepValues(formData), error: "Staff user not found." };
 
   const current = await db
     .select({ id: schema.roles.id, key: schema.roles.key })
@@ -74,13 +75,13 @@ export async function updateUserRolesAction(_prev: FormState, formData: FormData
     .innerJoin(schema.roles, eq(schema.roles.id, schema.userRoles.roleId))
     .where(and(eq(schema.userRoles.userId, userId), eq(schema.roles.scope, "global")));
   const next = await staffRoles(roleIds);
-  if (next.length !== roleIds.length) return { error: "One of the chosen roles can't be given to staff." };
-  if (next.length === 0) return { error: "A staff member needs at least one role. Disable the account instead." };
+  if (next.length !== roleIds.length) return { values: keepValues(formData), error: "One of the chosen roles can't be given to staff." };
+  if (next.length === 0) return { values: keepValues(formData), error: "A staff member needs at least one role. Disable the account instead." };
 
   const hadSuper = current.some((r) => r.key === "super_admin");
   const willHaveSuper = next.some((r) => r.key === "super_admin");
-  if (hadSuper !== willHaveSuper && !isSuperAdmin(actor)) return { error: "Only a Super Administrator can add or remove the Super Administrator role." };
-  if (hadSuper && !willHaveSuper && (await activeSuperAdminCount(userId)) === 0) return { error: "This is the last Super Administrator. Make someone else Super Administrator first." };
+  if (hadSuper !== willHaveSuper && !isSuperAdmin(actor)) return { values: keepValues(formData), error: "Only a Super Administrator can add or remove the Super Administrator role." };
+  if (hadSuper && !willHaveSuper && (await activeSuperAdminCount(userId)) === 0) return { values: keepValues(formData), error: "This is the last Super Administrator. Make someone else Super Administrator first." };
 
   await db.transaction(async (tx) => {
     if (current.length) await tx.delete(schema.userRoles).where(and(eq(schema.userRoles.userId, userId), inArray(schema.userRoles.roleId, current.map((r) => r.id))));
@@ -95,14 +96,14 @@ export async function setUserStatusAction(_prev: FormState, formData: FormData):
   const actor = await assertPermission("users.manage");
   const userId = z.string().uuid().parse(formData.get("userId"));
   const status = z.enum(["active", "disabled"]).parse(formData.get("status"));
-  if (userId === actor.id) return { error: "You can't disable your own account." };
+  if (userId === actor.id) return { values: keepValues(formData), error: "You can't disable your own account." };
   const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-  if (!target) return { error: "User not found." };
+  if (!target) return { values: keepValues(formData), error: "User not found." };
 
   if (status === "disabled") {
     const targetIsSuper = (await db.select({ k: schema.roles.key }).from(schema.userRoles).innerJoin(schema.roles, eq(schema.roles.id, schema.userRoles.roleId)).where(eq(schema.userRoles.userId, userId))).some((r) => r.k === "super_admin");
-    if (targetIsSuper && !isSuperAdmin(actor)) return { error: "Only a Super Administrator can disable a Super Administrator." };
-    if (targetIsSuper && (await activeSuperAdminCount(userId)) === 0) return { error: "This is the last Super Administrator and can't be disabled." };
+    if (targetIsSuper && !isSuperAdmin(actor)) return { values: keepValues(formData), error: "Only a Super Administrator can disable a Super Administrator." };
+    if (targetIsSuper && (await activeSuperAdminCount(userId)) === 0) return { values: keepValues(formData), error: "This is the last Super Administrator and can't be disabled." };
   }
   await db.update(schema.users).set({ status }).where(eq(schema.users.id, userId));
   if (status === "disabled") await destroyUserSessions(userId);
@@ -114,9 +115,9 @@ export async function setUserStatusAction(_prev: FormState, formData: FormData):
 export async function resetPasswordAction(_prev: UserFormState, formData: FormData): Promise<UserFormState> {
   const actor = await assertPermission("users.manage");
   const userId = z.string().uuid().parse(formData.get("userId"));
-  if (userId === actor.id) return { error: "Change your own password from your account page." };
+  if (userId === actor.id) return { values: keepValues(formData), error: "Change your own password from your account page." };
   const target = await db.query.users.findFirst({ where: eq(schema.users.id, userId) });
-  if (!target) return { error: "User not found." };
+  if (!target) return { values: keepValues(formData), error: "User not found." };
   const tempPassword = temporaryPassword();
   await db.update(schema.users).set({ passwordHash: await hashPassword(tempPassword), mustChangePassword: true, failedLoginCount: 0, lockedUntil: null }).where(eq(schema.users.id, userId));
   await destroyUserSessions(userId);
@@ -127,7 +128,7 @@ export async function resetPasswordAction(_prev: UserFormState, formData: FormDa
 export async function resetTwoFactorAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const actor = await assertPermission("users.manage");
   const userId = z.string().uuid().parse(formData.get("userId"));
-  if (userId === actor.id) return { error: "Ask another administrator to reset your own two-step verification." };
+  if (userId === actor.id) return { values: keepValues(formData), error: "Ask another administrator to reset your own two-step verification." };
   await db.update(schema.users).set({ totpSecretEnc: null, totpEnabledAt: null, totpLastStep: null }).where(eq(schema.users.id, userId));
   await destroyUserSessions(userId);
   await audit({ actorUserId: actor.id, action: "user.2fa_reset", entityType: "user", entityId: userId });

@@ -1,5 +1,6 @@
 "use server";
 
+import { keepValues, type FormValues } from "@/lib/form-values";
 import { redirect } from "next/navigation";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -9,27 +10,27 @@ import { getOpenCompetitions } from "@/lib/competitions";
 import { isEligible } from "@/lib/competition-types";
 import { audit } from "@/lib/server/audit";
 
-export type RegisterState = { error?: string } | undefined;
+export type RegisterState = { values?: FormValues; error?: string } | undefined;
 
 export async function createRegistrationAction(_prev: RegisterState, formData: FormData): Promise<RegisterState> {
   const { school, user } = await assertSchoolManager();
   const competitionId = z.string().uuid().parse(formData.get("competitionId"));
   const mode = z.enum(["online", "paper"]).safeParse(formData.get("mode"));
   const ids = z.array(z.string().uuid()).max(5000).safeParse(formData.getAll("studentIds"));
-  if (!ids.success || ids.data.length === 0) return { error: "Select at least one student." };
-  if (!mode.success) return { error: "Choose how your students will take the exam." };
+  if (!ids.success || ids.data.length === 0) return { values: keepValues(formData), error: "Select at least one student." };
+  if (!mode.success) return { values: keepValues(formData), error: "Choose how your students will take the exam." };
 
   const competition = (await getOpenCompetitions()).find((c) => c.id === competitionId);
-  if (!competition) return { error: "Registration for this competition is closed." };
-  if (!competition.modes.includes(mode.data)) return { error: "This exam mode isn't offered for this competition." };
+  if (!competition) return { values: keepValues(formData), error: "Registration for this competition is closed." };
+  if (!competition.modes.includes(mode.data)) return { values: keepValues(formData), error: "This exam mode isn't offered for this competition." };
 
   const uniqueIds = [...new Set(ids.data)];
   const students = await db.select({ id: schema.students.id, grade: schema.students.grade }).from(schema.students).where(and(eq(schema.students.schoolId, school.id), eq(schema.students.archived, false), inArray(schema.students.id, uniqueIds)));
-  if (students.length !== uniqueIds.length) return { error: "Some selected students were not found in your list. Refresh the page and try again." };
+  if (students.length !== uniqueIds.length) return { values: keepValues(formData), error: "Some selected students were not found in your list. Refresh the page and try again." };
   const ineligible = students.filter((s) => !isEligible(competition, s.grade));
-  if (ineligible.length) return { error: `${ineligible.length} selected student(s) are not in the eligible grades.` };
+  if (ineligible.length) return { values: keepValues(formData), error: `${ineligible.length} selected student(s) are not in the eligible grades.` };
   const already = await db.select({ id: schema.registrationItems.studentId }).from(schema.registrationItems).where(and(eq(schema.registrationItems.competitionId, competitionId), inArray(schema.registrationItems.studentId, uniqueIds)));
-  if (already.length) return { error: `${already.length} selected student(s) are already registered for this competition.` };
+  if (already.length) return { values: keepValues(formData), error: `${already.length} selected student(s) are already registered for this competition.` };
 
   const fee = competition.feePkr!;
   let registrationId: string;
@@ -53,7 +54,7 @@ export async function createRegistrationAction(_prev: RegisterState, formData: F
       return reg.id;
     });
   } catch (e) {
-    if (String((e as { cause?: { code?: string } }).cause?.code ?? (e as { code?: string }).code) === "23505") return { error: "Some students were registered by someone else just now. Refresh and try again." };
+    if (String((e as { cause?: { code?: string } }).cause?.code ?? (e as { code?: string }).code) === "23505") return { values: keepValues(formData), error: "Some students were registered by someone else just now. Refresh and try again." };
     throw e;
   }
   await audit({ actorUserId: user.id, action: "registration.created", entityType: "registration", entityId: registrationId, after: { schoolId: school.id, competition: competition.code, students: students.length, totalPkr: fee * students.length } });

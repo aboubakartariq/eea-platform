@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { val, vals } from "@/lib/form-values";
 import { useActionState } from "react";
 import { createStaffUserAction } from "../actions";
 import { Field, FormMessage, SubmitButton } from "@/components/ui/form";
@@ -23,11 +24,11 @@ export function NewUserForm({ roles }: { roles: { id: string; name: string; desc
     <form action={action} className="space-y-5">
       <FormMessage error={state?.error} />
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Full name" name="name" required error={e?.name} autoComplete="off" />
-        <Field label="Work email" name="email" type="email" required error={e?.email} autoComplete="off" />
-        <Field label="Phone (optional)" name="phone" type="tel" error={e?.phone} autoComplete="off" />
+        <Field label="Full name" name="name" defaultValue={val(state?.values, "name")} required error={e?.name} autoComplete="off" />
+        <Field label="Work email" name="email" defaultValue={val(state?.values, "email")} type="email" required error={e?.email} autoComplete="off" />
+        <Field label="Phone (optional)" name="phone" defaultValue={val(state?.values, "phone")} type="tel" error={e?.phone} autoComplete="off" />
       </div>
-      <RoleCheckboxes roles={roles} error={e?.roleIds} />
+      <RoleCheckboxes roles={roles} selected={vals(state?.values, "roleIds")} error={e?.roleIds} />
       <SubmitButton pendingText="Creating…" className="sm:w-auto">Create account</SubmitButton>
     </form>
   );

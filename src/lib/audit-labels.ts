@@ -26,6 +26,12 @@ const labels: Record<string, string> = {
   "student.created": "added a student",
   "student.updated": "updated a student",
   "registration.created": "registered students for a competition",
+  "parent.registered": "created a parent account",
+  "parent.child_linked": "linked a child to their account",
+  "parent.link_failed": "tried to link a child with details that didn't match",
+  "parent.child_added": "added a child",
+  "student.login_created": "created a student login",
+  "student.login_reset": "reset a student's password",
   "enquiry.received": "sent a website enquiry",
   "enquiry.status_changed": "updated an enquiry",
 };

@@ -22,7 +22,7 @@ export default async function ImportPage() {
           <span className="font-display text-sm font-bold text-gold-700">Step 1</span>
           <h2 className="mt-1 text-lg font-semibold">Download the template</h2>
           <p className="mt-2 text-sm text-muted">One student per row: name, date of birth, grade, section, and a parent&apos;s name and mobile. Your own sheet works too if it has these columns.</p>
-          <a href="/school/students/template" className={buttonClass("outline", "md", "mt-5")}><Download className="size-4" aria-hidden /> Download Excel template</a>
+          <a href="/school/student-template" download className={buttonClass("outline", "md", "mt-5")}><Download className="size-4" aria-hidden /> Download Excel template</a>
         </Card>
         <Card className="p-6 sm:p-8">
           <span className="font-display text-sm font-bold text-gold-700">Step 2</span>

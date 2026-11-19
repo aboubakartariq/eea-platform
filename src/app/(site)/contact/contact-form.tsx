@@ -1,5 +1,6 @@
 "use client";
 
+import { val } from "@/lib/form-values";
 import { useActionState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { submitContactAction } from "./actions";
@@ -28,15 +29,15 @@ export function ContactForm() {
     <form action={action} className="space-y-5" noValidate>
       <FormMessage error={state?.error} />
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Your name" name="name" autoComplete="name" required maxLength={120} error={e?.name} />
-        <Field label="Email" name="email" type="email" autoComplete="email" required error={e?.email} />
-        <Field label="Phone (optional)" name="phone" type="tel" autoComplete="tel" error={e?.phone} />
+        <Field label="Your name" name="name" defaultValue={val(state?.values, "name")} autoComplete="name" required maxLength={120} error={e?.name} />
+        <Field label="Email" name="email" defaultValue={val(state?.values, "email")} type="email" autoComplete="email" required error={e?.email} />
+        <Field label="Phone (optional)" name="phone" defaultValue={val(state?.values, "phone")} type="tel" autoComplete="tel" error={e?.phone} />
         <fieldset>
           <legend className="text-sm font-semibold text-navy-900">I am a</legend>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {audiences.map((a) => (
               <label key={a.value} className="cursor-pointer rounded-full px-4 py-2.5 text-sm ring-1 ring-line has-[:checked]:bg-navy-600 has-[:checked]:text-white has-[:checked]:ring-navy-600">
-                <input type="radio" name="audience" value={a.value} className="sr-only" required />
+                <input type="radio" name="audience" value={a.value} defaultChecked={val(state?.values, "audience") === a.value} className="sr-only" required />
                 {a.label}
               </label>
             ))}
@@ -44,8 +45,8 @@ export function ContactForm() {
           {e?.audience && <p className="mt-1.5 text-sm text-red-700">{e.audience}</p>}
         </fieldset>
       </div>
-      <Field label="Subject" name="subject" required maxLength={160} error={e?.subject} />
-      <TextArea label="Message" name="message" required maxLength={4000} error={e?.message} rows={6} />
+      <Field label="Subject" name="subject" defaultValue={val(state?.values, "subject")} required maxLength={160} error={e?.subject} />
+      <TextArea label="Message" name="message" required maxLength={4000} error={e?.message} rows={6} defaultValue={val(state?.values, "message")} />
       <div aria-hidden className="absolute -left-[9999px]">
         <label>Website <input name="website" tabIndex={-1} autoComplete="off" /></label>
       </div>

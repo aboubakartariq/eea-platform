@@ -30,7 +30,7 @@ export default async function UserPage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <p className="mb-2 text-sm"><Link href="/admin/users" className="text-muted hover:text-navy-700">← Users</Link></p>
-      <PageHeader title={user.name} description={user.email} />
+      <PageHeader title={user.name} description={user.email ?? user.username ?? ""} />
       <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
         <div className="space-y-6">
           <Card title="Account">

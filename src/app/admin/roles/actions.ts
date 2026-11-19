@@ -1,5 +1,6 @@
 "use server";
 
+import { keepValues } from "@/lib/form-values";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -13,14 +14,14 @@ export async function updateRolePermissionsAction(_prev: FormState, formData: Fo
   const actor = await assertPermission("roles.manage");
   const roleId = z.string().uuid().parse(formData.get("roleId"));
   const role = await db.query.roles.findFirst({ where: eq(schema.roles.id, roleId) });
-  if (!role) return { error: "Role not found." };
-  if (role.key === "super_admin") return { error: "The Super Administrator role always has every permission." };
+  if (!role) return { values: keepValues(formData), error: "Role not found." };
+  if (role.key === "super_admin") return { values: keepValues(formData), error: "The Super Administrator role always has every permission." };
 
   const requested = formData.getAll("permissions").map(String);
-  if (requested.some((p) => !(p in PERMISSIONS))) return { error: "Unknown permission." };
+  if (requested.some((p) => !(p in PERMISSIONS))) return { values: keepValues(formData), error: "Unknown permission." };
   const portalOnly = role.scope !== "global";
   if (requested.some((p) => p.startsWith("portal.") !== portalOnly)) {
-    return { error: portalOnly ? "School and family roles can only have portal permissions." : "Staff roles can't have portal permissions." };
+    return { values: keepValues(formData), error: portalOnly ? "School and family roles can only have portal permissions." : "Staff roles can't have portal permissions." };
   }
 
   const before = (await db.select({ p: schema.rolePermissions.permissionKey }).from(schema.rolePermissions).where(eq(schema.rolePermissions.roleId, roleId))).map((r) => r.p).sort();

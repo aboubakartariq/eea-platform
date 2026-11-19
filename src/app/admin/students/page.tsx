@@ -11,12 +11,12 @@ export const metadata: Metadata = { title: "Students" };
 export default async function StudentsAdmin({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   await requirePermission("students.view");
   const q = ((await searchParams).q ?? "").trim().slice(0, 80);
-  const where = and(eq(schema.students.archived, false), q ? or(ilike(schema.students.firstName, `%${q}%`), ilike(schema.students.lastName, `%${q}%`), ilike(schema.students.code, `%${q}%`), ilike(schema.schools.name, `%${q}%`)) : undefined);
+  const where = and(eq(schema.students.archived, false), q ? or(ilike(schema.students.firstName, `%${q}%`), ilike(schema.students.lastName, `%${q}%`), ilike(schema.students.code, `%${q}%`), ilike(schema.schools.name, `%${q}%`), ilike(schema.students.schoolName, `%${q}%`)) : undefined);
   const [rows, [{ n }]] = await Promise.all([
-    db.select({ id: schema.students.id, code: schema.students.code, first: schema.students.firstName, last: schema.students.lastName, grade: schema.students.grade, section: schema.students.section, school: schema.schools.name, schoolId: schema.schools.id })
-      .from(schema.students).innerJoin(schema.schools, eq(schema.schools.id, schema.students.schoolId)).where(where)
+    db.select({ id: schema.students.id, code: schema.students.code, first: schema.students.firstName, last: schema.students.lastName, grade: schema.students.grade, section: schema.students.section, school: schema.schools.name, schoolId: schema.schools.id, schoolName: schema.students.schoolName })
+      .from(schema.students).leftJoin(schema.schools, eq(schema.schools.id, schema.students.schoolId)).where(where)
       .orderBy(asc(schema.schools.name), asc(schema.students.grade), asc(schema.students.lastName)).limit(200),
-    db.select({ n: count() }).from(schema.students).innerJoin(schema.schools, eq(schema.schools.id, schema.students.schoolId)).where(where),
+    db.select({ n: count() }).from(schema.students).leftJoin(schema.schools, eq(schema.schools.id, schema.students.schoolId)).where(where),
   ]);
   return (
     <>
@@ -32,7 +32,7 @@ export default async function StudentsAdmin({ searchParams }: { searchParams: Pr
               <thead className="border-b border-line bg-surface/60"><tr><th className={th}>Student ID</th><th className={th}>Name</th><th className={th}>Grade</th><th className={th}>School</th></tr></thead>
               <tbody className="divide-y divide-line">
                 {rows.map((s) => (
-                  <tr key={s.id}><td className={`${td} font-mono text-xs`}>{s.code}</td><td className={`${td} font-medium text-navy-900`}>{s.first} {s.last}</td><td className={td}>{gradeName(s.grade)}{s.section ? ` · ${s.section}` : ""}</td><td className={td}><Link href={`/admin/schools/${s.schoolId}`} className="text-navy-600 hover:underline">{s.school}</Link></td></tr>
+                  <tr key={s.id}><td className={`${td} font-mono text-xs`}>{s.code}</td><td className={`${td} font-medium text-navy-900`}>{s.first} {s.last}</td><td className={td}>{gradeName(s.grade)}{s.section ? ` · ${s.section}` : ""}</td><td className={td}>{s.schoolId ? <Link href={`/admin/schools/${s.schoolId}`} className="text-navy-600 hover:underline">{s.school}</Link> : <span className="text-muted">Individual{s.schoolName ? ` · ${s.schoolName}` : ""}</span>}</td></tr>
                 ))}
               </tbody>
             </table>

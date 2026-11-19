@@ -8,6 +8,7 @@ import { sql } from "drizzle-orm";
 import {
   bigserial,
   boolean,
+  check,
   date,
   index,
   inet,
@@ -42,7 +43,10 @@ export const users = pgTable(
   "users",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    email: varchar("email", { length: 254 }).notNull(),
+    /** Null for student accounts, which sign in with their student ID. */
+    email: varchar("email", { length: 254 }),
+    /** Student accounts sign in with this (their student ID, e.g. EEA-S-100245). */
+    username: varchar("username", { length: 24 }).unique(),
     name: varchar("name", { length: 120 }).notNull(),
     phone: varchar("phone", { length: 32 }),
     kind: userKind("kind").notNull(),
@@ -56,9 +60,11 @@ export const users = pgTable(
     failedLoginCount: integer("failed_login_count").notNull().default(0),
     lockedUntil: timestamp("locked_until", { withTimezone: true }),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    /** For student accounts: the student record this login belongs to. */
+    studentId: uuid("student_id"),
     ...timestamps,
   },
-  (t) => [uniqueIndex("users_email_lower_idx").on(sql`lower(${t.email})`)],
+  (t) => [uniqueIndex("users_email_lower_idx").on(sql`lower(${t.email})`), uniqueIndex("users_student_idx").on(t.studentId)],
 );
 
 export const roles = pgTable("roles", {
@@ -266,10 +272,13 @@ export const students = pgTable(
   "students",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    schoolId: uuid("school_id")
-      .notNull()
-      .references(() => schools.id, { onDelete: "restrict" }),
+    /** Null for students entered individually by a parent. */
+    schoolId: uuid("school_id").references(() => schools.id, { onDelete: "restrict" }),
     campusId: uuid("campus_id").references(() => campuses.id, { onDelete: "set null" }),
+    /** For individual entrants: the school they attend, as typed by the parent. */
+    schoolName: varchar("school_name", { length: 200 }),
+    /** For individual entrants: the parent account that added them. */
+    addedByGuardian: uuid("added_by_guardian").references(() => users.id, { onDelete: "set null" }),
     /** Public student ID, e.g. EEA-S-100245. */
     code: varchar("code", { length: 16 }).notNull().unique(),
     firstName: varchar("first_name", { length: 60 }).notNull(),
@@ -289,7 +298,27 @@ export const students = pgTable(
     index("students_school_grade_idx").on(t.schoolId, t.grade),
     // Duplicate guard: same school, same name, same date of birth.
     uniqueIndex("students_dedupe_idx").on(t.schoolId, sql`lower(${t.firstName})`, sql`lower(${t.lastName})`, t.dateOfBirth),
+    uniqueIndex("students_individual_dedupe_idx")
+      .on(t.addedByGuardian, sql`lower(${t.firstName})`, sql`lower(${t.lastName})`, t.dateOfBirth)
+      .where(sql`${t.schoolId} is null`),
   ],
+);
+
+/** Parents linked to students (a parent can have several children, a child several parents). */
+export const studentGuardians = pgTable(
+  "student_guardians",
+  {
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    relationship: varchar("relationship", { length: 20 }).notNull().default("parent"),
+    linkedVia: varchar("linked_via", { length: 20 }).notNull(), // added | claimed
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [primaryKey({ columns: [t.studentId, t.userId] }), index("student_guardians_user_idx").on(t.userId)],
 );
 
 export const bulkImports = pgTable("bulk_imports", {
@@ -335,9 +364,10 @@ export const registrations = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     /** e.g. REG-2027-100245 */
     reference: varchar("reference", { length: 24 }).notNull().unique(),
-    schoolId: uuid("school_id")
-      .notNull()
-      .references(() => schools.id, { onDelete: "restrict" }),
+    /** Set for school registrations. */
+    schoolId: uuid("school_id").references(() => schools.id, { onDelete: "restrict" }),
+    /** Set for individual registrations made by a parent. */
+    guardianUserId: uuid("guardian_user_id").references(() => users.id, { onDelete: "restrict" }),
     competitionId: uuid("competition_id")
       .notNull()
       .references(() => competitions.id, { onDelete: "restrict" }),
@@ -349,7 +379,12 @@ export const registrations = pgTable(
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     ...timestamps,
   },
-  (t) => [index("registrations_school_idx").on(t.schoolId), index("registrations_competition_idx").on(t.competitionId)],
+  (t) => [
+    index("registrations_school_idx").on(t.schoolId),
+    index("registrations_guardian_idx").on(t.guardianUserId),
+    index("registrations_competition_idx").on(t.competitionId),
+    check("registrations_payer_check", sql`(${t.schoolId} is null) <> (${t.guardianUserId} is null)`),
+  ],
 );
 
 export const registrationItems = pgTable(

@@ -11,7 +11,7 @@ The full plan (sitemap, architecture, database, roadmap) lives in the *EEA Platf
 | 1 | Research, sitemap, architecture, roadmap | Done (plan doc) |
 | 2 | Design system and public website | Done |
 | 3 | Database, logins, roles, audit log | Done |
-| 4 | School, student and parent portals | **School portal in review**; student and parent portals next |
+| 4 | School, student and parent portals | **In review** |
 | 5 | Question bank, paper generator, exam engine | Not started |
 | 6 | Results, rankings, certificates, awards | Not started |
 | 7 | Payments, finance, messaging, CMS | Not started |
@@ -65,8 +65,13 @@ They are built in Phases 3–6 with real database operations.
 - [x] Registration: eligible grades only, select by grade, online or paper mode, reference number (REG-2027-…), fee total; no student registered twice
 - [x] Schools see only their own data (tested)
 - [x] Admin: schools, students and registrations lists; dashboard figures
-- [x] Tests: 19 unit tests, 25-step school portal browser test, 25-step sign-in browser test
-- [ ] Student and parent portals, individual registration
+- [x] Tests: 20 unit tests; browser tests: school portal (25 checks), parents and students (19), sign-in and admin (25)
+- [x] Parent accounts: sign up, link a school-registered child (student ID + date of birth + the parent mobile on the school record), add a child as an individual entrant
+- [x] Individual registration by parents for online competitions; one entry per child per competition, whoever registers
+- [x] Student logins: username is the student ID, created by a parent or the school coordinator; students sign in with their student ID
+- [x] Student portal: competitions, exam dates and countdown, link to the syllabus
+- [x] Every account type is kept to its own portal; parents see only their linked children (tested)
+- [x] Forms keep what people typed when there is an error
 - [ ] Admit cards and roll numbers (after payment is confirmed; payments in Phase 7)
 - [ ] Multiple campuses and extra school staff accounts in the portal
 

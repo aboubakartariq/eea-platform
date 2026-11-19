@@ -2,7 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { requireUser } from "./dal";
+import { homeFor, requireUser } from "./dal";
 
 /**
  * For school portal pages and actions: the signed-in user's school.
@@ -11,7 +11,7 @@ import { requireUser } from "./dal";
 export async function requireSchool() {
   const user = await requireUser();
   const role = user.roles.find((r) => r.schoolId && (r.key === "school_coordinator" || r.key === "teacher"));
-  if (!role || !user.permissions.has("portal.school")) redirect(user.isStaff ? "/admin" : "/login");
+  if (!role || !user.permissions.has("portal.school")) redirect(homeFor(user));
   const school = await db.query.schools.findFirst({ where: eq(schema.schools.id, role.schoolId!) });
   if (!school || school.status !== "approved") redirect("/login");
   return { user, school, canManage: role.key === "school_coordinator" };

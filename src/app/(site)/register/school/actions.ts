@@ -1,5 +1,6 @@
 "use server";
 
+import { keepValues, type FormValues } from "@/lib/form-values";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/db";
@@ -8,7 +9,7 @@ import { audit } from "@/lib/server/audit";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { requestInfo } from "@/lib/server/request";
 
-export type SchoolSignupState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> } | undefined;
+export type SchoolSignupState = { values?: FormValues; ok?: boolean; error?: string; fieldErrors?: Record<string, string> } | undefined;
 
 const phone = z.string().trim().regex(/^\+?[0-9 ()-]{7,20}$/, "Enter a valid phone number.");
 
@@ -33,18 +34,18 @@ export async function registerSchoolAction(_prev: SchoolSignupState, formData: F
   if (String(formData.get("website") ?? "")) return { ok: true }; // honeypot
   const keys = ["schoolName", "principalName", "officialEmail", "schoolPhone", "address", "city", "coordinatorName", "coordinatorEmail", "coordinatorPhone", "password", "confirm", "consent"];
   const parsed = signupSchema.safeParse(Object.fromEntries(keys.map((k) => [k, formData.get(k) ?? ""])));
-  if (!parsed.success) return { error: "Please check the highlighted fields.", fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
+  if (!parsed.success) return { values: keepValues(formData), error: "Please check the highlighted fields.", fieldErrors: Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message])) };
   const v = parsed.data;
   const problem = passwordProblem(v.password, { email: v.coordinatorEmail, name: v.coordinatorName });
-  if (problem) return { fieldErrors: { password: problem } };
+  if (problem) return { values: keepValues(formData), fieldErrors: { password: problem } };
 
   const { ip } = await requestInfo();
-  if (!(await rateLimit(`school-signup:${ip ?? "unknown"}`, 5, 60 * 60))) return { error: "Too many registrations from this connection. Please try again in an hour." };
+  if (!(await rateLimit(`school-signup:${ip ?? "unknown"}`, 5, 60 * 60))) return { values: keepValues(formData), error: "Too many registrations from this connection. Please try again in an hour." };
 
   const existing = await db.query.users.findFirst({ where: sql`lower(${schema.users.email}) = ${v.coordinatorEmail}` });
-  if (existing) return { fieldErrors: { coordinatorEmail: "An account with this email already exists. Sign in instead, or use another email." } };
+  if (existing) return { values: keepValues(formData), fieldErrors: { coordinatorEmail: "An account with this email already exists. Sign in instead, or use another email." } };
   const role = await db.query.roles.findFirst({ where: eq(schema.roles.key, "school_coordinator") });
-  if (!role) return { error: "Registration is not available right now. Please contact EEA." };
+  if (!role) return { values: keepValues(formData), error: "Registration is not available right now. Please contact EEA." };
 
   const passwordHash = await hashPassword(v.password);
   const school = await db.transaction(async (tx) => {

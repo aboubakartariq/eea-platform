@@ -63,7 +63,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                 {rows.map((s) => (
                   <tr key={s.id}>
                     <td className={`${td} font-mono text-xs`}>{s.code}</td>
-                    <td className={`${td} font-medium text-navy-900`}>{s.firstName} {s.lastName}</td>
+                    <td className={td}><Link href={`/school/students/${s.id}`} className="font-medium text-navy-900 hover:underline">{s.firstName} {s.lastName}</Link></td>
                     <td className={td}>{gradeName(s.grade)}{s.section ? ` · ${s.section}` : ""}</td>
                     <td className={`${td} tabular-nums text-muted`}>{s.dateOfBirth.split("-").reverse().join("/")}</td>
                     <td className={`${td} text-muted`}>{s.guardianName}<p className="text-xs">{s.guardianPhone}</p></td>
