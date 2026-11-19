@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { CheckCircle2, ListOrdered, Scale, ShieldCheck } from "lucide-react";
 import { LinkButton } from "@/components/ui/button";
-import { Notice, PageHero, SectionHeading } from "@/components/ui/misc";
+import { PageHero, SectionHeading } from "@/components/ui/misc";
+import { LookupForm } from "./lookup-form";
 
 export const metadata: Metadata = {
   title: "Results",
@@ -10,20 +11,18 @@ export const metadata: Metadata = {
 
 const steps = [
   { icon: CheckCircle2, title: "Marked automatically", text: "Online answers and scanned paper answer sheets are marked against the approved answer key." },
-  { icon: ListOrdered, title: "Ranked per grade", text: "Ranks are calculated at school, city, province and national level for each grade." },
-  { icon: Scale, title: "Clear tie-breaks", text: "Equal scores are separated by published rules, such as higher accuracy and less time taken." },
+  { icon: ListOrdered, title: "Ranked per grade", text: "Every student gets a rank among all students in the same grade, and a rank within their school." },
+  { icon: Scale, title: "Clear tie-breaks", text: "Equal scores are separated by accuracy: fewer wrong answers ranks higher. Students equal on both share the rank." },
   { icon: ShieldCheck, title: "Checked and approved", text: "Results are reviewed and approved by two people before they are published." },
 ];
 
 export default function ResultsPage() {
   return (
     <>
-      <PageHero eyebrow="Results" title="Results and rankings" intro="Students and schools see full results in their dashboards. Position holders are listed publicly with permission." />
+      <PageHero eyebrow="Results" title="Results and rankings" intro="Students, parents and schools see full results in their portals. You can also look up a published result here with the roll number and date of birth." />
       <section className="py-16">
         <div className="container-page space-y-14">
-          <Notice title="No results published yet">
-            Results for each competition appear here after they are approved. You will be able to search by roll number and date of birth, and schools will receive a full report in their dashboard.
-          </Notice>
+          <LookupForm />
           <div>
             <SectionHeading eyebrow="How results work" title="Fair, checked and transparent" />
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

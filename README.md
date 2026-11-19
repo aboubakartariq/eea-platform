@@ -12,8 +12,8 @@ The full plan (sitemap, architecture, database, roadmap) lives in the *EEA Platf
 | 2 | Design system and public website | Done |
 | 3 | Database, logins, roles, audit log | Done |
 | 4 | School, student and parent portals | Done |
-| 5 | Question bank, paper generator, exam engine | **In review** |
-| 6 | Results, rankings, certificates, awards | Not started |
+| 5 | Question bank, paper generator, exam engine | Done |
+| 6 | Results, rankings, certificates, awards | **In review** |
 | 7 | Payments, finance, messaging, CMS | Not started |
 | 8 | Analytics, testing, launch | Not started |
 
@@ -71,7 +71,6 @@ They are built in Phases 3–6 with real database operations.
 - [x] Student portal: competitions, exam dates and countdown, link to the syllabus
 - [x] Every account type is kept to its own portal; parents see only their linked children (tested)
 - [x] Forms keep what people typed when there is an error
-- [ ] Admit cards and roll numbers (after payment is confirmed; payments in Phase 7)
 - [ ] Multiple campuses and extra school staff accounts in the portal
 
 ### Phase 5 checklist (question bank and exams)
@@ -93,12 +92,30 @@ They are built in Phases 3–6 with real database operations.
 - [x] Staff monitor: eligible, started, writing, submitted; answers saved, last save, times the student left the page; end an attempt
 - [x] Manual payment recording (bank transfer, cash, cheque) by finance staff confirms a registration
 - [x] Students cannot open another student's attempt or any admin page (tested)
-- [x] Tests: 33 unit tests; browser tests: exams (34 checks), school portal (25), parents and students (19), sign-in and admin (25)
 - [ ] Images and formulas in questions (needs file storage)
 - [ ] Server-generated PDF files (today: browser Print / Save as PDF)
-- [ ] Admit cards and roll numbers; paper-exam answer sheet entry (Phase 6, with results)
 - [ ] Practice tests for students
 - [ ] AI-suggested questions (would always arrive as drafts for human approval)
+
+### Phase 6 checklist (results, certificates, awards)
+
+- [x] Roll numbers (e.g. MMO-27-100245) issued when a registration's payment is confirmed; back-fill for older ones
+- [x] Admit cards for students, parents and schools (bulk print for a school); paper-mode cards show the printed version
+- [x] Paper answer sheets: per-paper Excel with every entrant's roll number and version, typed answers marked against that version's key, absent students, all-or-nothing upload with row errors
+- [x] Results calculated from online exams and paper sheets; absent and missing sheets reported; blocked while students are still writing
+- [x] Ranks per grade (score, then accuracy; exact ties share a rank) and within each school; percentages
+- [x] Award rules per competition (rank, top %, minimum %, everyone), first match wins
+- [x] Approval by a second person, publish now or at a set time, withdraw for correction (revokes its certificates), recalculate
+- [x] Certificates issued on publish: A4 landscape, editable wording and signatures per competition, QR code and verification code, print or save as PDF
+- [x] Public verification page (genuine / revoked / not found), rate-limited; revoke single certificates with a reason
+- [x] Public result lookup with roll number and date of birth, rate-limited
+- [x] Student and parent portals: score, rank, school rank, award, topic breakdown, certificate; school portal: results table and Excel export
+- [x] Medal parcels created on publish (per school, or per parent for individual entrants); dispatch tracking with courier and tracking number
+- [x] Every results step audited; families and schools see only their own students (tested)
+- [x] Tests: 40 unit tests; browser tests: results (29 checks), exams (34), school portal (25), parents and students (19), sign-in and admin (25)
+- [ ] City and province ranks (needs province on school records)
+- [ ] Public list of position holders (needs a consent setting)
+- [ ] Emailing and SMS of results and certificates (Phase 7, needs providers)
 
 ## Run locally
 

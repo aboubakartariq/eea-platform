@@ -10,6 +10,8 @@ import { gradeName } from "@/lib/competition-types";
 import { Card, PageHeader, Pill, td, th } from "@/components/admin/ui";
 import { formatDate } from "@/lib/utils";
 import { ChildLoginForm } from "./login-form";
+import { publishedResultsFor } from "@/lib/server/results";
+import { ResultCard } from "@/components/portal/result-card";
 
 export const metadata: Metadata = { title: "Child" };
 
@@ -22,12 +24,13 @@ export default async function ChildPage({ params, searchParams }: { params: Prom
     student.schoolId ? db.query.schools.findFirst({ where: eq(schema.schools.id, student.schoolId), columns: { name: true } }) : Promise.resolve(null),
     db.query.users.findFirst({ where: eq(schema.users.studentId, student.id), columns: { id: true, lastLoginAt: true } }),
     db
-      .select({ competition: schema.competitions.name, examDate: schema.competitions.examDate, mode: schema.registrations.mode, status: schema.registrations.status, viaSchool: schema.registrations.schoolId })
+      .select({ competition: schema.competitions.name, examDate: schema.competitions.examDate, mode: schema.registrations.mode, status: schema.registrations.status, viaSchool: schema.registrations.schoolId, itemId: schema.registrationItems.id, roll: schema.registrationItems.rollNumber })
       .from(schema.registrationItems)
       .innerJoin(schema.registrations, eq(schema.registrations.id, schema.registrationItems.registrationId))
       .innerJoin(schema.competitions, eq(schema.competitions.id, schema.registrationItems.competitionId))
       .where(eq(schema.registrationItems.studentId, student.id)),
   ]);
+  const results = await publishedResultsFor([student.id]);
 
   return (
     <>
@@ -52,7 +55,7 @@ export default async function ChildPage({ params, searchParams }: { params: Prom
                     <td className={`${td} font-medium text-navy-900`}>{e.competition}<p className="text-xs text-muted">{e.mode === "online" ? "Online" : "Paper, at school"}</p></td>
                     <td className={`${td} text-muted`}>{e.examDate ? formatDate(e.examDate) : "To be announced"}</td>
                     <td className={`${td} text-muted`}>{e.viaSchool ? "School" : "You"}</td>
-                    <td className={td}><Pill tone={e.status === "confirmed" ? "green" : "amber"}>{e.status === "confirmed" ? "Confirmed" : "Awaiting payment"}</Pill></td>
+                    <td className={td}><Pill tone={e.status === "confirmed" ? "green" : "amber"}>{e.status === "confirmed" ? "Confirmed" : "Awaiting payment"}</Pill>{e.roll && <Link href={`/admit-card/${e.itemId}`} className="mt-1 block text-xs font-semibold text-navy-600 hover:underline">Admit card</Link>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -70,6 +73,12 @@ export default async function ChildPage({ params, searchParams }: { params: Prom
           </div>
         </Card>
       </div>
+      {results.length > 0 && (
+        <section className="mt-8" aria-labelledby="results-h">
+          <h2 id="results-h" className="mb-3 text-xl font-bold">Results</h2>
+          <div className="grid gap-4 md:grid-cols-2">{results.map((r) => <ResultCard key={r.id} r={r} />)}</div>
+        </section>
+      )}
     </>
   );
 }

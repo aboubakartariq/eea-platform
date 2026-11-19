@@ -99,3 +99,20 @@ export const deadlineFor = (startedAt: Date, durationMinutes: number, closesAt: 
 export const SAVE_GRACE_MS = 20_000;
 
 export const setLetter = (i: number) => String.fromCharCode(65 + i);
+
+/** Question order of a printed version. Version A keeps the paper order. Used by printing and answer-sheet marking. */
+export function setOrder<T>(itemsByPosition: readonly T[], seed: number, set: string): T[] {
+  return set === "A" ? [...itemsByPosition] : shuffle(itemsByPosition, rng(hashSeed(seed, set)));
+}
+
+/** Reads a handwritten/OMR answer typed into a spreadsheet cell. */
+export function parseSheetAnswer(type: QuestionSnapshot["type"], cell: unknown): AttemptResponse {
+  const raw = cell == null ? "" : String(cell).trim();
+  if (type === "numeric" || type === "short") return { text: raw };
+  if (!raw) return { options: [] };
+  if (type === "true_false") {
+    const u = raw.toUpperCase();
+    return { options: u === "A" || u === "T" || u === "TRUE" ? ["A"] : u === "B" || u === "F" || u === "FALSE" ? ["B"] : ["?"] };
+  }
+  return { options: [...new Set(raw.toUpperCase().split(/[\s,;/]+/).filter(Boolean))] };
+}

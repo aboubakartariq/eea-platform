@@ -9,6 +9,7 @@ const items = [
   { href: "/school/students", label: "Students" },
   { href: "/school/register", label: "Register for competitions" },
   { href: "/school/registrations", label: "Registrations" },
+  { href: "/school/results", label: "Results" },
 ];
 
 export function SchoolNav() {

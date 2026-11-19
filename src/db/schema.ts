@@ -402,6 +402,8 @@ export const registrationItems = pgTable(
       .notNull()
       .references(() => students.id, { onDelete: "restrict" }),
     grade: smallint("grade").notNull(),
+    /** Issued when the registration is confirmed, e.g. MMO-27-100245. */
+    rollNumber: varchar("roll_number", { length: 24 }).unique(),
   },
   // A student can be registered for a competition only once.
   (t) => [uniqueIndex("registration_items_unique_idx").on(t.competitionId, t.studentId)],
@@ -632,6 +634,184 @@ export const manualPayments = pgTable("manual_payments", {
   recordedBy: uuid("recorded_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamps.createdAt,
 });
+
+/* ----------------------------------------------------------------- Results */
+
+export const rollNumberSeq = pgSequence("roll_number_seq", { startWith: 100001 });
+export const certificateSeq = pgSequence("certificate_seq", { startWith: 100001 });
+
+export type ScriptLine = { pq: string; response: AttemptResponse; correct: boolean; marks: number; answered: boolean };
+
+/** A paper-exam answer sheet, entered from Excel and marked against the version's key. */
+export const paperScripts = pgTable("paper_scripts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  registrationItemId: uuid("registration_item_id")
+    .notNull()
+    .unique()
+    .references(() => registrationItems.id, { onDelete: "cascade" }),
+  paperId: uuid("paper_id")
+    .notNull()
+    .references(() => papers.id, { onDelete: "restrict" }),
+  setLetter: varchar("set_letter", { length: 1 }).notNull(),
+  absent: boolean("absent").notNull().default(false),
+  lines: jsonb("lines").$type<ScriptLine[]>().notNull().default([]),
+  score: numeric("score", { precision: 8, scale: 2 }).notNull().default("0"),
+  maxScore: integer("max_score").notNull(),
+  correctCount: integer("correct_count").notNull().default(0),
+  answeredCount: integer("answered_count").notNull().default(0),
+  enteredBy: uuid("entered_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const resultSetStatus = pgEnum("result_set_status", ["draft", "approved", "published", "withdrawn"]);
+
+export type AwardRule = {
+  key: string;
+  label: string;
+  kind: "medal" | "merit" | "participation";
+  rule: { type: "rank"; max: number } | { type: "top_percent"; value: number } | { type: "min_percent"; value: number } | { type: "all" };
+};
+
+/** One calculation of a competition's results. Draft → approved (second person) → published. */
+export const resultSets = pgTable(
+  "result_sets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    status: resultSetStatus("status").notNull().default("draft"),
+    awardRules: jsonb("award_rules").$type<AwardRule[]>().notNull(),
+    resultCount: integer("result_count").notNull().default(0),
+    absentCount: integer("absent_count").notNull().default(0),
+    calculatedBy: uuid("calculated_by").references(() => users.id, { onDelete: "set null" }),
+    calculatedAt: timestamp("calculated_at", { withTimezone: true }).notNull().defaultNow(),
+    approvedBy: uuid("approved_by").references(() => users.id, { onDelete: "set null" }),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    /** Results are visible from this moment (can be in the future). */
+    publishAt: timestamp("publish_at", { withTimezone: true }),
+    publishedBy: uuid("published_by").references(() => users.id, { onDelete: "set null" }),
+    withdrawnReason: text("withdrawn_reason"),
+    withdrawnBy: uuid("withdrawn_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [
+    index("result_sets_competition_idx").on(t.competitionId),
+    // At most one live (not withdrawn) result set per competition.
+    uniqueIndex("result_sets_live_idx").on(t.competitionId).where(sql`${t.status} <> 'withdrawn'`),
+  ],
+);
+
+export const results = pgTable(
+  "results",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resultSetId: uuid("result_set_id")
+      .notNull()
+      .references(() => resultSets.id, { onDelete: "cascade" }),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "restrict" }),
+    registrationItemId: uuid("registration_item_id")
+      .notNull()
+      .references(() => registrationItems.id, { onDelete: "restrict" }),
+    schoolId: uuid("school_id").references(() => schools.id, { onDelete: "set null" }),
+    grade: smallint("grade").notNull(),
+    source: varchar("source", { length: 8 }).notNull(), // online | paper
+    absent: boolean("absent").notNull().default(false),
+    score: numeric("score", { precision: 8, scale: 2 }),
+    maxScore: integer("max_score"),
+    percent: numeric("percent", { precision: 5, scale: 2 }),
+    correctCount: integer("correct_count"),
+    answeredCount: integer("answered_count"),
+    timeTakenSeconds: integer("time_taken_seconds"),
+    /** Rank within the competition and grade (equal results share a rank). */
+    rank: integer("rank"),
+    cohortSize: integer("cohort_size"),
+    rankInSchool: integer("rank_in_school"),
+    schoolCohortSize: integer("school_cohort_size"),
+    award: varchar("award", { length: 24 }),
+    awardLabel: varchar("award_label", { length: 60 }),
+  },
+  (t) => [
+    uniqueIndex("results_set_student_idx").on(t.resultSetId, t.studentId),
+    index("results_student_idx").on(t.studentId),
+    index("results_school_idx").on(t.resultSetId, t.schoolId),
+  ],
+);
+
+export const certificates = pgTable(
+  "certificates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Printed on the certificate, e.g. EEA-C-27-100245. */
+    serial: varchar("serial", { length: 24 }).notNull().unique(),
+    /** Random code in the QR link; cannot be guessed from the serial. */
+    verifyCode: varchar("verify_code", { length: 16 }).notNull().unique(),
+    resultId: uuid("result_id")
+      .notNull()
+      .unique()
+      .references(() => results.id, { onDelete: "restrict" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => students.id, { onDelete: "restrict" }),
+    competitionId: uuid("competition_id")
+      .notNull()
+      .references(() => competitions.id, { onDelete: "restrict" }),
+    /** Frozen at issue so the certificate never changes. */
+    studentName: varchar("student_name", { length: 130 }).notNull(),
+    schoolName: varchar("school_name", { length: 200 }),
+    grade: smallint("grade").notNull(),
+    award: varchar("award", { length: 24 }).notNull(),
+    awardLabel: varchar("award_label", { length: 60 }).notNull(),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedReason: text("revoked_reason"),
+    revokedBy: uuid("revoked_by").references(() => users.id, { onDelete: "set null" }),
+  },
+  (t) => [index("certificates_student_idx").on(t.studentId)],
+);
+
+export type Signatory = { name: string; title: string };
+
+export const certificateTemplates = pgTable("certificate_templates", {
+  competitionId: uuid("competition_id")
+    .primaryKey()
+    .references(() => competitions.id, { onDelete: "cascade" }),
+  heading: varchar("heading", { length: 80 }).notNull(),
+  body: text("body").notNull(),
+  signatories: jsonb("signatories").$type<Signatory[]>().notNull().default([]),
+  updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+  ...timestamps,
+});
+
+export const dispatchStatus = pgEnum("dispatch_status", ["pending", "packed", "dispatched", "delivered"]);
+
+/** Medals and trophies sent to a school, or to a parent for an individual entrant. */
+export const awardDispatches = pgTable(
+  "award_dispatches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    resultSetId: uuid("result_set_id")
+      .notNull()
+      .references(() => resultSets.id, { onDelete: "cascade" }),
+    schoolId: uuid("school_id").references(() => schools.id, { onDelete: "restrict" }),
+    guardianUserId: uuid("guardian_user_id").references(() => users.id, { onDelete: "restrict" }),
+    items: jsonb("items").$type<{ label: string; count: number }[]>().notNull(),
+    status: dispatchStatus("status").notNull().default("pending"),
+    address: text("address"),
+    courier: varchar("courier", { length: 60 }),
+    tracking: varchar("tracking", { length: 80 }),
+    dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [index("award_dispatches_set_idx").on(t.resultSetId)],
+);
 
 export type User = typeof users.$inferSelect;
 export type Role = typeof roles.$inferSelect;

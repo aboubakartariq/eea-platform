@@ -23,9 +23,9 @@ export const adminNav: { group: string; items: AdminNavItem[] }[] = [
       { label: "Registrations", href: "/admin/registrations", icon: "ClipboardList", permission: "registrations.view" },
       { label: "Question bank", href: "/admin/questions", icon: "Library", permission: "questions.view" },
       { label: "Examinations", href: "/admin/exams", icon: "FileCheck2", permission: "exams.view" },
-      { label: "Results", href: "/admin/results", icon: "ListOrdered", permission: "results.view", phase: 6 },
-      { label: "Certificates", href: "/admin/certificates", icon: "BadgeCheck", permission: "certificates.view", phase: 6 },
-      { label: "Awards", href: "/admin/awards", icon: "Medal", permission: "awards.view", phase: 6 },
+      { label: "Results", href: "/admin/results", icon: "ListOrdered", permission: "results.view" },
+      { label: "Certificates", href: "/admin/certificates", icon: "BadgeCheck", permission: "certificates.view" },
+      { label: "Awards", href: "/admin/awards", icon: "Medal", permission: "awards.view" },
     ],
   },
   {

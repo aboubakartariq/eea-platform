@@ -9,6 +9,7 @@ import { assertPermission } from "@/lib/auth/dal";
 import type { FormState } from "@/lib/auth/actions";
 import { keepValues } from "@/lib/form-values";
 import { audit } from "@/lib/server/audit";
+import { issueRollNumbers } from "@/lib/server/entries";
 
 const paymentSchema = z.object({
   id: z.string().uuid(),
@@ -34,6 +35,7 @@ export async function recordPaymentAction(_prev: FormState, formData: FormData):
     const done = await tx.update(schema.registrations).set({ status: "confirmed" }).where(and(eq(schema.registrations.id, reg.id), eq(schema.registrations.status, "pending_payment"))).returning({ id: schema.registrations.id });
     if (!done.length) return false;
     await tx.insert(schema.manualPayments).values({ registrationId: reg.id, method: v.method, reference: v.reference, amountPkr: v.amountPkr, receivedOn: v.receivedOn, recordedBy: actor.id });
+    await issueRollNumbers(tx, reg.id);
     return true;
   });
   if (!ok) return { error: "Someone else updated this registration just now. Reload the page." };

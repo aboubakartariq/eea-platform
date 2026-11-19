@@ -164,3 +164,77 @@ export async function buildQuestionTemplate(competitionCodes: string[]) {
   });
   return wb.xlsx.writeBuffer();
 }
+
+/* ----------------------------------------------------------- Answer sheets */
+
+export type SheetRow = { rowNumber: number; roll: string; version: string; absent: boolean; answers: unknown[] };
+
+export async function buildAnswerSheetTemplate(paper: { code: string; title: string; questions: number; printSets: number }, students: { roll: string; name: string; school: string; grade: string; version: string }[]) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "EEA";
+  const ws = wb.addWorksheet("Answer sheets", { views: [{ state: "frozen", ySplit: 1, xSplit: 2 }] });
+  const qs = Array.from({ length: paper.questions }, (_, i) => `Q${i + 1}`);
+  ws.columns = [
+    { header: "Roll number", key: "roll", width: 18 },
+    { header: "Student name", key: "name", width: 26 },
+    { header: "School", key: "school", width: 26 },
+    { header: "Grade", key: "grade", width: 8 },
+    { header: "Version", key: "version", width: 9 },
+    { header: "Absent", key: "absent", width: 8 },
+    ...qs.map((q) => ({ header: q, key: q, width: 6 })),
+  ];
+  const header = ws.getRow(1);
+  header.font = { bold: true, color: { argb: "FFFFFFFF" } };
+  header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2E3192" } };
+  for (const s of students) ws.addRow({ ...s });
+  const letters = Array.from({ length: paper.printSets }, (_, i) => String.fromCharCode(65 + i)).join(",");
+  for (let r = 2; r <= Math.max(students.length + 1, 2); r++) {
+    ws.getCell(r, 5).dataValidation = { type: "list", allowBlank: false, formulae: [`"${letters}"`] };
+    ws.getCell(r, 6).dataValidation = { type: "list", allowBlank: true, formulae: ['"Yes"'] };
+    for (let c = 7; c < 7 + qs.length; c++) ws.getCell(r, c).numFmt = "@";
+  }
+  const help = wb.addWorksheet("How to fill");
+  help.getColumn(1).width = 110;
+  [
+    `Answer sheets for ${paper.code} · ${paper.title}`,
+    "",
+    "1. One row per student. Roll numbers are filled in for everyone registered for this paper.",
+    "2. Version: the letter printed on the student's paper (it is on their admit card).",
+    "3. Q1, Q2 …: the question numbers as printed on that version. Type exactly what the student chose:",
+    "   • a letter, e.g. B   • several letters for multiple choice, e.g. A, C   • True/False: A or B (or T / F)",
+    "   • numbers and short answers as written. Leave a cell empty if the student left it blank.",
+    "4. Absent: type Yes for students who did not sit the exam, and leave their answers empty.",
+    "5. Uploading again replaces the earlier sheet for the same students.",
+  ].forEach((line, i) => {
+    help.getCell(i + 1, 1).value = line;
+    if (i === 0) help.getCell(1, 1).font = { bold: true, size: 14 };
+  });
+  return wb.xlsx.writeBuffer();
+}
+
+export async function readAnswerSheet(buffer: ArrayBuffer, questions: number) {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buffer);
+  const ws = wb.worksheets[0];
+  if (!ws) return { error: "The file has no worksheet." } as const;
+  const norm = (v: unknown) => String(cellValue(v as ExcelJS.CellValue) ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const headers = (ws.getRow(1).values as ExcelJS.CellValue[]).slice(1).map(norm);
+  const col = (name: string) => headers.indexOf(name) + 1;
+  const roll = col("rollnumber"), version = col("version"), absent = col("absent");
+  if (!roll || !version) return { error: "The first row must have Roll number and Version columns. Please use the template for this paper." } as const;
+  const qCols = Array.from({ length: questions }, (_, i) => col(`q${i + 1}`));
+  const missing = qCols.map((c, i) => (c ? null : `Q${i + 1}`)).filter(Boolean);
+  if (missing.length) return { error: `These question columns are missing: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? "…" : ""}. This paper has ${questions} questions.` } as const;
+  const rows: SheetRow[] = [];
+  for (let r = 2; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const get = (c: number) => (c ? cellValue(row.getCell(c).value) : null);
+    const rollValue = String(get(roll) ?? "").trim().toUpperCase();
+    const answers = qCols.map((c) => get(c));
+    if (!rollValue && answers.every((a) => a == null || String(a).trim() === "")) continue;
+    rows.push({ rowNumber: r, roll: rollValue, version: String(get(version) ?? "").trim().toUpperCase(), absent: /^(yes|y|ab|absent|1|true)$/i.test(String(get(absent) ?? "").trim()), answers });
+    if (rows.length > 5000) return { error: "The file has more than 5,000 rows. Please split it." } as const;
+  }
+  if (!rows.length) return { error: "No student rows were found." } as const;
+  return { rows } as const;
+}

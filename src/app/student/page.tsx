@@ -12,6 +12,8 @@ import { formatDate } from "@/lib/utils";
 import { studentExams } from "@/lib/server/attempts";
 import { DateTime } from "@/components/admin/ui";
 import { StartExam } from "./start-exam";
+import { publishedResultsFor } from "@/lib/server/results";
+import { ResultCard } from "@/components/portal/result-card";
 
 export const metadata: Metadata = { title: "My competitions" };
 
@@ -25,7 +27,7 @@ export default async function StudentHome() {
   const [school, entries, exams] = await Promise.all([
     student.schoolId ? db.query.schools.findFirst({ where: eq(schema.schools.id, student.schoolId), columns: { name: true } }) : Promise.resolve(null),
     db
-      .select({ id: schema.competitions.id, slug: schema.competitions.slug, name: schema.competitions.name, icon: schema.competitions.icon, accent: schema.competitions.accent, examDate: schema.competitions.examDate, duration: schema.competitions.durationMinutes, mode: schema.registrations.mode, status: schema.registrations.status })
+      .select({ id: schema.competitions.id, slug: schema.competitions.slug, name: schema.competitions.name, icon: schema.competitions.icon, accent: schema.competitions.accent, examDate: schema.competitions.examDate, duration: schema.competitions.durationMinutes, mode: schema.registrations.mode, status: schema.registrations.status, itemId: schema.registrationItems.id, roll: schema.registrationItems.rollNumber })
       .from(schema.registrationItems)
       .innerJoin(schema.registrations, eq(schema.registrations.id, schema.registrationItems.registrationId))
       .innerJoin(schema.competitions, eq(schema.competitions.id, schema.registrationItems.competitionId))
@@ -33,6 +35,7 @@ export default async function StudentHome() {
       .orderBy(asc(schema.competitions.examDate)),
     studentExams(student.id),
   ]);
+  const results = await publishedResultsFor([student.id]);
   const now = serverNow();
 
   return (
@@ -41,6 +44,13 @@ export default async function StudentHome() {
         <h1 className="text-3xl font-bold">Hi {student.firstName}!</h1>
         <p className="mt-1.5 text-muted">{gradeName(student.grade)} · {school?.name ?? student.schoolName ?? "Individual entrant"} · Student ID <span className="font-mono">{student.code}</span></p>
       </div>
+
+      {results.length > 0 && (
+        <section className="mb-8" aria-labelledby="results-h">
+          <h2 id="results-h" className="mb-3 text-xl font-bold">My results</h2>
+          <div className="grid gap-4 md:grid-cols-2">{results.map((r) => <ResultCard key={r.id} r={r} />)}</div>
+        </section>
+      )}
 
       {exams.length > 0 && (
         <section className="mb-8" aria-labelledby="exams-h">
@@ -97,6 +107,7 @@ export default async function StudentHome() {
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
                   {e.status === "confirmed" ? <Pill tone="green">Confirmed</Pill> : <Pill tone="amber">Waiting for payment</Pill>}
+                  {e.roll && <Link href={`/admit-card/${e.itemId}`} className="text-sm font-semibold text-navy-600 hover:underline">Admit card ({e.roll})</Link>}
                   <Link href={`/competitions/${e.slug}#syllabus`} className="ml-auto text-sm font-semibold text-navy-600 hover:underline">What to study →</Link>
                 </div>
               </Card>

@@ -6,9 +6,9 @@ import { db, schema } from "@/db";
 import { can, requirePermission } from "@/lib/auth/dal";
 import { answerText } from "@/lib/questions";
 import { gradeRange } from "@/lib/question-ui";
-import { hashSeed, rng, setLetter, shuffle } from "@/lib/exam/engine";
+import { setLetter, setOrder } from "@/lib/exam/engine";
 import { audit } from "@/lib/server/audit";
-import { PrintButton } from "./print-button";
+import { PrintButton } from "@/components/ui/print-button";
 
 export const metadata: Metadata = { title: "Print paper" };
 
@@ -29,7 +29,7 @@ export default async function PrintPaper({ params, searchParams }: { params: Pro
     db.select().from(schema.paperQuestions).where(eq(schema.paperQuestions.paperId, id)).orderBy(asc(schema.paperQuestions.position)),
   ]);
   // Version A keeps the paper's order; other versions are shuffled from the paper's seed.
-  const ordered = set === "A" ? items : shuffle(items, rng(hashSeed(paper.seed, set)));
+  const ordered = setOrder(items, paper.seed, set);
   if (key) await audit({ actorUserId: user.id, action: "paper.answer_key_viewed", entityType: "paper", entityId: paper.id, after: { set } });
 
   return (
