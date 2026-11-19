@@ -48,7 +48,7 @@ with sync_playwright() as p:
     for k, v in dict(name="Noor Ahmed", email="noor@example.com", phone="12", password="Family-Pass-2027", confirm="Family-Pass-2027").items(): parent.fill(f"input[name={k}]", v)
     parent.check("input[name=consent]"); parent.click(SUBMIT); expect(parent.locator("text=valid mobile number")).to_be_visible(); ok("invalid parent mobile rejected")
     parent.fill("input[name=phone]", "0321 7654321"); parent.fill("input[name=password]", "Family-Pass-2027"); parent.fill("input[name=confirm]", "Family-Pass-2027"); parent.click(SUBMIT)
-    parent.wait_for_url("**/parent?welcome=1"); expect(parent.locator("text=Welcome, Noor")).to_be_visible(); ok("parent signed up and was signed in")
+    parent.wait_for_url("**/parent?welcome=1"); expect(parent.locator("text=Welcome, Noor").first).to_be_visible(); ok("parent signed up and was signed in")
 
     # Link Fatima
     parent.goto(BASE + "/parent/children/link")
