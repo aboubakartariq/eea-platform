@@ -51,7 +51,7 @@ with sync_playwright() as p:
         pub.goto(BASE + "/competitions/mental-math-olympiad")
         if pub.locator("text=PKR 1,500").count(): break
         time.sleep(1)
-    pub.screenshot(path="/tmp/dbg_pub.png", full_page=True); expect(pub.locator("text=PKR 1,500").first).to_be_visible(); expect(pub.locator("text=Times tables")).to_be_visible()
+    expect(pub.locator("text=PKR 1,500").first).to_be_visible(); expect(pub.locator("text=Times tables")).to_be_visible()
     ok(f"public page shows the new details (after {attempt + 1} load(s))")
     pub.screenshot(path=SHOTS + "p4_public_competition.png", full_page=False)
 
