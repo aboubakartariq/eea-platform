@@ -11,6 +11,18 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function Dashboard() {
   const user = await requirePermission("dashboard.view");
 
+  const [work] = (
+    await db.execute<{ review: number; openSessions: number; writing: number; draftResults: number; approvedResults: number; certificates: number; parcels: number }>(sql`
+      select
+        (select count(*)::int from questions where status = 'review') as "review",
+        (select count(*)::int from exam_sessions where status = 'scheduled' and now() between opens_at and closes_at) as "openSessions",
+        (select count(*)::int from exam_attempts where status = 'in_progress' and deadline_at > now()) as "writing",
+        (select count(*)::int from result_sets where status = 'draft') as "draftResults",
+        (select count(*)::int from result_sets where status = 'approved') as "approvedResults",
+        (select count(*)::int from certificates where revoked_at is null) as "certificates",
+        (select count(*)::int from award_dispatches d join result_sets rs on rs.id = d.result_set_id where rs.status <> 'withdrawn' and d.status in ('pending','packed')) as "parcels"
+    `)
+  ).rows;
   const [[schools], [pendingSchools], [staff], [newEnquiries], [failedLogins], [students], [entries], [competitions]] = await Promise.all([
     db.select({ n: count() }).from(schema.schools),
     db.select({ n: count() }).from(schema.schools).where(eq(schema.schools.status, "pending")),
@@ -33,7 +45,7 @@ export default async function Dashboard() {
 
   return (
     <>
-      <PageHeader title={`Welcome, ${user.name.split(" ")[0]}`} description="Live figures from the database. More figures appear here as each module goes live." />
+      <PageHeader title={`Welcome, ${user.name.split(" ")[0]}`} description="Live figures from the database." />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Schools" value={schools.n} hint={`${pendingSchools.n} awaiting approval`} href={can(user, "schools.view") ? "/admin/schools" : undefined} />
         <StatCard label="Students" value={students.n} href={can(user, "students.view") ? "/admin/students" : undefined} />
@@ -66,17 +78,22 @@ export default async function Dashboard() {
             )}
           </Card>
         )}
-        <Card title="Coming to this dashboard">
+        <Card title="Exams and results">
           <ul className="divide-y divide-line text-sm">
             {[
-              ["Student and parent portals, admit cards", 4],
-              ["Upcoming and completed examinations", 5],
-              ["Results awaiting publication, certificates", 6],
-              ["Revenue and pending payments", 7],
-            ].map(([t, p]) => (
-              <li key={t} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                <span className="text-ink">{t}</span>
-                <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-muted">Phase {p}</span>
+              ["Questions waiting for review", work.review, "/admin/questions?status=review"],
+              ["Online exams open now", work.openSessions, "/admin/exams"],
+              ["Students writing an exam now", work.writing, "/admin/exams"],
+              ["Results waiting for approval", work.draftResults, "/admin/results"],
+              ["Results approved, not yet published", work.approvedResults, "/admin/results"],
+              ["Certificates issued", work.certificates, "/admin/certificates"],
+              ["Medal parcels not yet dispatched", work.parcels, "/admin/awards"],
+            ].map(([t, n, href]) => (
+              <li key={String(t)}>
+                <Link href={String(href)} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-surface/60">
+                  <span className="text-ink">{t}</span>
+                  <span className={`font-display text-lg font-bold tabular-nums ${Number(n) > 0 ? "text-navy-900" : "text-muted"}`}>{n}</span>
+                </Link>
               </li>
             ))}
           </ul>
