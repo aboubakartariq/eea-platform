@@ -64,6 +64,36 @@
     outline-offset: 2px;
     border-radius: 6px;
   }
+  /* Arabic: a typeface with Arabic letters for everything, and no negative tracking (it breaks joined letters). */
+  html:lang(ar) body,
+  html:lang(ar) .font-display,
+  html:lang(ar) h1,
+  html:lang(ar) h2,
+  html:lang(ar) h3,
+  html:lang(ar) h4 {
+    font-family: "Noto Sans Arabic Variable", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+    letter-spacing: 0 !important;
+  }
+  /* Japanese: the reader's own Japanese system font; Latin letters still use our fonts. */
+  html:lang(ja) body,
+  html:lang(ja) .font-display,
+  html:lang(ja) h1,
+  html:lang(ja) h2,
+  html:lang(ja) h3 {
+    font-family: "Inter Variable", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+    letter-spacing: 0 !important;
+    line-break: strict;
+  }
+  /* Break Japanese headings between phrases, not in the middle of a word. */
+  html:lang(ja) h1,
+  html:lang(ja) h2,
+  html:lang(ja) h3 {
+    word-break: auto-phrase;
+  }
+  html:lang(ar) .eyebrow,
+  html:lang(ja) .eyebrow {
+    letter-spacing: 0;
+  }
   ::selection {
     background: var(--color-gold-50);
     color: var(--color-navy-900);

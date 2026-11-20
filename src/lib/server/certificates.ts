@@ -59,7 +59,7 @@ export async function verifyLookup(code: string) {
   const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (clean.length !== 10) return null;
   const [c] = await db
-    .select({ cert: schema.certificates, competition: schema.competitions.name, examDate: schema.competitions.examDate })
+    .select({ cert: schema.certificates, competition: schema.competitions.name, slug: schema.competitions.slug, examDate: schema.competitions.examDate })
     .from(schema.certificates)
     .innerJoin(schema.competitions, eq(schema.competitions.id, schema.certificates.competitionId))
     .innerJoin(schema.results, eq(schema.results.id, schema.certificates.resultId))

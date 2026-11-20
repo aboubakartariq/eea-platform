@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { isEligible, type PublicCompetition } from "@/lib/competition-types";
 import { CompetitionCard } from "@/components/competition-card";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n/client";
+import { fill } from "@/i18n/config";
+import { gradeText } from "@/i18n/format";
 
 const grades = Array.from({ length: 10 }, (_, i) => i + 1);
 
@@ -24,6 +27,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 
 export function CompetitionsBrowser({ items }: { items: PublicCompetition[] }) {
+  const { t } = useI18n();
+  const l = t.competitions;
   const [kind, setKind] = useState<"all" | PublicCompetition["kind"]>("all");
   const [mode, setMode] = useState<"all" | "online" | "paper">("all");
   const [grade, setGrade] = useState<number | "all">("all");
@@ -41,35 +46,35 @@ export function CompetitionsBrowser({ items }: { items: PublicCompetition[] }) {
     <div>
       <div className="flex flex-col gap-5 rounded-[var(--radius-card)] border border-line bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="mr-2 w-16 text-sm font-semibold text-navy-900">Type</span>
-          <Chip active={kind === "all"} onClick={() => setKind("all")}>All</Chip>
-          <Chip active={kind === "olympiad"} onClick={() => setKind("olympiad")}>Olympiads</Chip>
-          <Chip active={kind === "activity"} onClick={() => setKind("activity")}>Extracurricular</Chip>
+          <span className="me-2 w-20 text-sm font-semibold text-navy-900">{l.type}</span>
+          <Chip active={kind === "all"} onClick={() => setKind("all")}>{l.all}</Chip>
+          <Chip active={kind === "olympiad"} onClick={() => setKind("olympiad")}>{t.nav.olympiads}</Chip>
+          <Chip active={kind === "activity"} onClick={() => setKind("activity")}>{t.nav.extracurricular}</Chip>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="mr-2 w-16 text-sm font-semibold text-navy-900">Mode</span>
-          <Chip active={mode === "all"} onClick={() => setMode("all")}>Any</Chip>
-          <Chip active={mode === "online"} onClick={() => setMode("online")}>Online</Chip>
-          <Chip active={mode === "paper"} onClick={() => setMode("paper")}>Paper</Chip>
+          <span className="me-2 w-20 text-sm font-semibold text-navy-900">{l.mode}</span>
+          <Chip active={mode === "all"} onClick={() => setMode("all")}>{l.any}</Chip>
+          <Chip active={mode === "online"} onClick={() => setMode("online")}>{t.common.online}</Chip>
+          <Chip active={mode === "paper"} onClick={() => setMode("paper")}>{t.common.paper}</Chip>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor="grade" className="mr-2 w-16 text-sm font-semibold text-navy-900">Grade</label>
+          <label htmlFor="grade" className="me-2 w-20 text-sm font-semibold text-navy-900">{l.grade}</label>
           <select
             id="grade"
             value={grade}
             onChange={(e) => setGrade(e.target.value === "all" ? "all" : Number(e.target.value))}
             className="h-10 rounded-full bg-white px-4 text-sm ring-1 ring-line focus:ring-navy-600"
           >
-            <option value="all">All grades</option>
+            <option value="all">{t.grades.all}</option>
             {grades.map((g) => (
-              <option key={g} value={g}>Grade {g}</option>
+              <option key={g} value={g}>{gradeText(t, g)}</option>
             ))}
           </select>
         </div>
       </div>
 
       <p className="mt-8 text-sm text-muted" aria-live="polite">
-        {filtered.length} {filtered.length === 1 ? "competition" : "competitions"} found
+        {fill(l.found, { n: filtered.length })}
       </p>
       {filtered.length > 0 ? (
         <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -79,7 +84,7 @@ export function CompetitionsBrowser({ items }: { items: PublicCompetition[] }) {
         </div>
       ) : (
         <div className="mt-6 rounded-[var(--radius-card)] border border-dashed border-line p-10 text-center text-muted">
-          No competitions match these filters. Try another grade or mode.
+          {l.none}
         </div>
       )}
     </div>

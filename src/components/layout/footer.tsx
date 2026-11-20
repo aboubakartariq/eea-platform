@@ -1,11 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { footerNav, site } from "@/lib/site";
+import { getI18n } from "@/i18n/server";
+import { site } from "@/lib/site";
 
-export function Footer() {
+export async function Footer() {
+  const { t, href } = await getI18n();
   const { email, phone, whatsapp, address } = site.contact;
   const hasContact = Boolean(email || phone || whatsapp || address);
+  const f = t.footer;
+  const groups = [
+    { title: f.competitions, links: [[t.nav.allCompetitions, "/competitions"], [t.nav.olympiads, "/olympiads"], [t.nav.extracurricular, "/activities"], [t.nav.results, "/results"], [f.verify, "/verify"]] },
+    { title: f.participate, links: [[f.forSchools, "/schools"], [f.forStudents, "/students"], [f.resources, "/resources"], [f.register, "/register"]] },
+    { title: f.company, links: [[f.aboutUs, "/about"], [f.news, "/news"], [f.contact, "/contact"]] },
+    { title: f.policies, links: [[f.privacy, "/privacy"], [f.terms, "/terms"], [f.refunds, "/refunds"]] },
+  ];
 
   return (
     <footer className="bg-navy-900 text-navy-100">
@@ -13,13 +22,13 @@ export function Footer() {
         <div>
           <div className="flex items-center gap-4">
             <Image src="/brand/eea-seal-white.svg" alt="" width={64} height={64} />
-            <p className="font-display text-lg leading-snug font-semibold text-white">
+            <p className="font-display text-lg leading-snug font-semibold text-white" lang="en">
               Educational Extracurricular
               <br />
               Activities
             </p>
           </div>
-          <p className="mt-5 max-w-sm text-sm leading-relaxed text-navy-200">{site.description}</p>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-navy-200">{f.about}</p>
           {hasContact && (
             <ul className="mt-6 space-y-2 text-sm">
               {email && (
@@ -31,7 +40,7 @@ export function Footer() {
               {phone && (
                 <li className="flex items-center gap-2">
                   <Phone className="size-4 text-gold" aria-hidden />
-                  <a href={`tel:${phone.replace(/\s/g, "")}`} className="hover:text-white">{phone}</a>
+                  <a href={`tel:${phone.replace(/\s/g, "")}`} dir="ltr" className="hover:text-white">{phone}</a>
                 </li>
               )}
               {whatsapp && (
@@ -50,15 +59,13 @@ export function Footer() {
           )}
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          {footerNav.map((group) => (
+          {groups.map((group) => (
             <div key={group.title}>
               <h2 className="font-display text-sm font-semibold tracking-wide text-white">{group.title}</h2>
               <ul className="mt-4 space-y-2.5 text-sm">
-                {group.links.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="text-navy-200 hover:text-white">
-                      {l.label}
-                    </Link>
+                {group.links.map(([label, path]) => (
+                  <li key={path}>
+                    <Link href={href(path)} className="text-navy-200 hover:text-white">{label}</Link>
                   </li>
                 ))}
               </ul>
@@ -68,8 +75,8 @@ export function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col gap-2 py-6 text-xs text-navy-200 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {site.copyrightYear} {site.legalName} All rights reserved.</p>
-          <Link href="/verify" className="hover:text-white">Verify a certificate</Link>
+          <p>© {site.copyrightYear} {site.legalName} {f.rights}</p>
+          <Link href={href("/verify")} className="hover:text-white">{f.verify}</Link>
         </div>
       </div>
     </footer>

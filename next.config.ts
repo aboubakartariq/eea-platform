@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["@node-rs/argon2", "exceljs"],
   experimental: {
+    globalNotFound: true,
     // Excel uploads of class lists (files are limited to 2 MB in the action itself).
     serverActions: { bodySizeLimit: "3mb" },
   },
