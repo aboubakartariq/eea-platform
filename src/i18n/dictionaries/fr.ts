@@ -439,11 +439,29 @@ const fr: Dictionary = {
 
   legal: {
     eyebrow: "Politiques",
-    englishOnly: "Cette politique est rédigée en anglais, et seule la version anglaise fait foi.",
+    englishOnly: "Ceci est une traduction proposée pour faciliter la lecture. En cas de différence, la version anglaise fait foi.",
     draft: "Projet à relire. Cette politique doit être vérifiée par EEA et son conseiller juridique avant le lancement du site.",
     privacyIntro: "Comment nous collectons, utilisons et protégeons les informations des élèves, des parents et des écoles.",
     termsIntro: "Les règles de participation aux concours EEA.",
     refundsIntro: "Quand et comment les frais d'inscription sont remboursés.",
+    terms: [
+      { h: "Admissibilité", p: ["Les élèves participent dans le niveau qu'ils suivent actuellement. Chaque page de concours indique les niveaux et les modes disponibles."] },
+      { h: "Comportement", p: ["Les élèves doivent faire leur propre travail. La fraude, le partage des sujets ou l'usurpation d'identité entraînent la disqualification."] },
+      { h: "Résultats", p: ["Les résultats sont définitifs une fois publiés, sauf si une demande de correction est acceptée. Les demandes de correction peuvent être faites pendant la période indiquée avec les résultats."] },
+      { h: "Certificats et récompenses", p: ["Les certificats sont délivrés sous forme numérique avec un numéro unique. Les récompenses physiques sont envoyées à l'école de l'élève, sauf accord contraire."] },
+    ],
+    privacy: [
+      { h: "Ce que nous collectons", p: ["Pour les élèves : nom, niveau, école, date de naissance et coordonnées d'un parent ou tuteur. Pour les écoles : informations sur l'école et coordonnées des coordinateurs. Les données de paiement sont traitées par nos prestataires de paiement et ne sont pas conservées par EEA."] },
+      { h: "Pourquoi nous les collectons", p: ["Uniquement pour inscrire les élèves, organiser les concours, publier les résultats, délivrer les certificats et récompenses, et contacter les écoles et les parents à ce sujet."] },
+      { h: "Qui peut les voir", p: ["Le dossier d'un élève est visible par l'élève, ses parents ou tuteurs associés, les coordinateurs de son école et le personnel autorisé d'EEA. Les listes de résultats publiques n'affichent les noms que si les paramètres du concours et le consentement le permettent."] },
+      { h: "Consentement", p: ["Un parent ou tuteur donne son consentement en inscrivant un élève à titre individuel. Les écoles confirment disposer du consentement des parents lorsqu'elles inscrivent des élèves."] },
+      { h: "Sécurité et conservation", p: ["Les données sont chiffrées lors de leur transmission, l'accès est limité selon le rôle et chaque action sensible est enregistrée. Les dossiers ne sont conservés que le temps nécessaire, et les parents peuvent demander la correction ou la suppression des données d'un élève."] },
+    ],
+    refunds: [
+      { h: "Avant la clôture des inscriptions", p: ["Les conditions de remboursement avant la date limite d'inscription seront fixées par EEA et publiées ici."] },
+      { h: "Après la clôture des inscriptions", p: ["Les conditions de remboursement après la date limite, et pour les concours annulés par EEA, seront publiées ici."] },
+      { h: "Comment les remboursements sont versés", p: ["Les remboursements approuvés sont reversés sur le moyen de paiement d'origine, et chaque remboursement est enregistré avec un reçu."] },
+    ],
   },
 
   notFound: { title: "Page introuvable", text: "La page que vous cherchez a été déplacée ou n'existe pas.", home: "Retour à l'accueil", competitions: "Concours" },

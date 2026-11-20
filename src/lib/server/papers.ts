@@ -38,7 +38,7 @@ export const shortfallMessage = (s: { row: number; wanted: number; found: number
     .map((x) => {
       const r = blueprint[x.row - 1];
       const what = [r.difficulty, r.topic].filter(Boolean).join(" ") || "any";
-      return `Row ${x.row} needs ${x.wanted} ${what} question${x.wanted === 1 ? "" : "s"} but only ${x.found} ${x.found === 1 ? "is" : "are"} available.`;
+      return `Row ${x.row}: ${x.wanted} needed (${what}), ${x.found} available.`;
     })
     .join(" ");
 

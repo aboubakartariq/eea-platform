@@ -439,11 +439,29 @@ const tr: Dictionary = {
 
   legal: {
     eyebrow: "Politikalar",
-    englishOnly: "Bu politika İngilizce yazılmıştır ve İngilizce metin geçerlidir.",
+    englishOnly: "Bu, okumayı kolaylaştırmak için yapılmış bir çeviridir. Herhangi bir farklılık olursa İngilizce sürüm geçerlidir.",
     draft: "İnceleme taslağı. Bu politika, web sitesi yayına girmeden önce EEA ve hukuk danışmanı tarafından kontrol edilmelidir.",
     privacyIntro: "Öğrencilerin, velilerin ve okulların bilgilerini nasıl topladığımız, kullandığımız ve koruduğumuz.",
     termsIntro: "EEA yarışmalarına katılım kuralları.",
     refundsIntro: "Kayıt ücretlerinin ne zaman ve nasıl iade edildiği.",
+    terms: [
+      { h: "Katılım koşulları", p: ["Öğrenciler şu anda okudukları sınıfta yarışmaya katılır. Her yarışma sayfasında uygun sınıflar ve sınav türleri listelenir."] },
+      { h: "Davranış", p: ["Öğrenciler kendi çalışmalarını yapmalıdır. Kopya, sınav kâğıdı paylaşımı veya başkasının yerine sınava girme diskalifiyeyle sonuçlanır."] },
+      { h: "Sonuçlar", p: ["Sonuçlar yayımlandıktan sonra kesindir; bir düzeltme talebi kabul edilirse bu durum değişebilir. Düzeltme talepleri sonuçlarla birlikte belirtilen süre içinde yapılabilir."] },
+      { h: "Sertifikalar ve ödüller", p: ["Sertifikalar benzersiz bir numarayla dijital olarak verilir. Fiziksel ödüller, aksi kararlaştırılmadıkça öğrencinin okuluna gönderilir."] },
+    ],
+    privacy: [
+      { h: "Topladığımız bilgiler", p: ["Öğrenciler için: ad, sınıf, okul, doğum tarihi ve bir veli ya da vasinin iletişim bilgileri. Okullar için: okul bilgileri ve koordinatör iletişim bilgileri. Ödeme bilgileri ödeme hizmeti sağlayıcılarımız tarafından işlenir ve EEA tarafından saklanmaz."] },
+      { h: "Neden topluyoruz", p: ["Yalnızca öğrencileri kaydetmek, yarışmaları yürütmek, sonuçları yayımlamak, sertifika ve ödül vermek ve bunlarla ilgili olarak okullar ve velilerle iletişim kurmak için."] },
+      { h: "Kimler görebilir", p: ["Bir öğrencinin kayıtlarını öğrencinin kendisi, bağlı velileri veya vasileri, okulunun koordinatörleri ve yetkili EEA personeli görebilir. Herkese açık sonuç listeleri, yalnızca yarışma ayarları ve onay izin veriyorsa isim gösterir."] },
+      { h: "Onay", p: ["Bir öğrenciyi bireysel olarak kaydeden veli veya vasi onay vermiş olur. Okullar, öğrencileri kaydederken veli onayına sahip olduklarını teyit eder."] },
+      { h: "Güvenlik ve saklama", p: ["Veriler aktarım sırasında şifrelenir, erişim role göre sınırlandırılır ve her hassas işlem kaydedilir. Kayıtlar yalnızca gerektiği sürece saklanır ve veliler öğrencinin verilerinin düzeltilmesini veya silinmesini isteyebilir."] },
+    ],
+    refunds: [
+      { h: "Kayıtlar kapanmadan önce", p: ["Kayıt son tarihinden önceki iade koşulları EEA tarafından belirlenecek ve burada yayımlanacaktır."] },
+      { h: "Kayıtlar kapandıktan sonra", p: ["Son tarihten sonraki ve EEA tarafından iptal edilen yarışmalar için iade koşulları burada yayımlanacaktır."] },
+      { h: "İadeler nasıl yapılır", p: ["Onaylanan iadeler ilk ödeme yöntemine geri ödenir ve her iade bir makbuzla kaydedilir."] },
+    ],
   },
 
   notFound: { title: "Sayfa bulunamadı", text: "Aradığınız sayfa taşınmış veya mevcut değil.", home: "Ana sayfaya git", competitions: "Yarışmalar" },

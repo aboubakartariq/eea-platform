@@ -63,13 +63,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
   );
 }
 
-export const th = "px-5 py-3 text-left text-xs font-semibold tracking-wide text-muted uppercase";
+export const th = "px-5 py-3 text-start text-xs font-semibold tracking-wide text-muted uppercase";
 export const td = "px-5 py-3.5 align-middle";
 
-export function DateTime({ value }: { value: Date }) {
-  return (
-    <time dateTime={value.toISOString()} className="whitespace-nowrap tabular-nums">
-      {new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Karachi" }).format(value)}
-    </time>
-  );
-}
+export { DateTime } from "./date-time";

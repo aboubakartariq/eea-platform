@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from "@/i18n/config";
 
-/** Portals, sign-in and staff pages: English only, outside the language routes. */
+/** Portals, sign-in and staff pages. They keep one address in every language; the saved choice picks the language. */
 const APP_PATHS = /^\/(admin|school|student|parent|certificates|admit-card|login|account)(\/|$)/;
 /** Of those, the ones that need a session cookie (real checks happen on the server). */
 const PROTECTED = /^\/(admin|account|school|student|parent|certificates|admit-card)(\/|$)|^\/login\/verify$/;
@@ -23,12 +23,23 @@ function fromHeader(header: string | null): Locale {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  const saved = request.cookies.get(LOCALE_COOKIE)?.value;
+  const preferred = saved && isLocale(saved) ? saved : fromHeader(request.headers.get("accept-language"));
+
   if (APP_PATHS.test(pathname)) {
     if (PROTECTED.test(pathname) && !request.cookies.has("eea_session")) return NextResponse.redirect(new URL("/login", request.url));
-    return NextResponse.next();
+    return NextResponse.rewrite(new URL(`/${preferred}${pathname}${search}`, request.url));
   }
 
   const first = pathname.split("/")[1];
+  const rest = pathname.slice(first.length + 1) || "/";
+
+  // "/fr/admin" (from the language menu): remember French and go back to the plain address.
+  if (isLocale(first) && APP_PATHS.test(rest)) {
+    const res = NextResponse.redirect(new URL(rest + search, request.url));
+    res.cookies.set(LOCALE_COOKIE, first, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
+    return res;
+  }
 
   // "/en/..." is the same page as "/...": keep one address.
   if (first === DEFAULT_LOCALE) {
@@ -40,8 +51,6 @@ export function proxy(request: NextRequest) {
 
   // An English address. Send first-time visitors to their own language once; after that the
   // language they chose (stored in a cookie by the language menu) wins.
-  const saved = request.cookies.get(LOCALE_COOKIE)?.value;
-  const preferred = saved && isLocale(saved) ? saved : fromHeader(request.headers.get("accept-language"));
   if (preferred !== DEFAULT_LOCALE && (request.method === "GET" || request.method === "HEAD")) {
     return NextResponse.redirect(new URL(`/${preferred}${pathname === "/" ? "" : pathname}${search}`, request.url));
   }

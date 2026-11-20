@@ -439,11 +439,29 @@ const nl: Dictionary = {
 
   legal: {
     eyebrow: "Beleid",
-    englishOnly: "Dit beleid is in het Engels geschreven, en de Engelse versie is leidend.",
+    englishOnly: "Dit is een vertaling voor het gemak. Bij verschillen geldt de Engelse versie.",
     draft: "Concept ter beoordeling. Dit beleid moet door EEA en haar juridisch adviseur worden gecontroleerd voordat de website live gaat.",
     privacyIntro: "Hoe we de gegevens van leerlingen, ouders en scholen verzamelen, gebruiken en beschermen.",
     termsIntro: "De regels voor deelname aan EEA-wedstrijden.",
     refundsIntro: "Wanneer en hoe inschrijfgeld wordt terugbetaald.",
+    terms: [
+      { h: "Toelating", p: ["Leerlingen doen mee in de groep waarin ze nu zitten. Op de pagina van elke wedstrijd staan de groepen en examenvormen."] },
+      { h: "Gedrag", p: ["Leerlingen moeten hun eigen werk doen. Fraude, het delen van examens of zich voordoen als een ander leidt tot uitsluiting."] },
+      { h: "Resultaten", p: ["Resultaten zijn definitief zodra ze zijn gepubliceerd, tenzij een verzoek om correctie wordt toegekend. Een verzoek om correctie kan worden ingediend binnen de termijn die bij de resultaten staat."] },
+      { h: "Certificaten en prijzen", p: ["Certificaten worden digitaal uitgegeven met een uniek nummer. Fysieke prijzen worden naar de school van de leerling gestuurd, tenzij anders afgesproken."] },
+    ],
+    privacy: [
+      { h: "Wat we verzamelen", p: ["Van leerlingen: naam, groep, school, geboortedatum en contactgegevens van een ouder of voogd. Van scholen: schoolgegevens en contactgegevens van coördinatoren. Betaalgegevens worden verwerkt door onze betaalproviders en niet door EEA bewaard."] },
+      { h: "Waarom we het verzamelen", p: ["Alleen om leerlingen in te schrijven, wedstrijden te organiseren, resultaten te publiceren, certificaten en prijzen uit te reiken en scholen en ouders hierover te informeren."] },
+      { h: "Wie het kan zien", p: ["De gegevens van een leerling zijn zichtbaar voor de leerling, de gekoppelde ouders of voogden, de coördinatoren van de school en bevoegde medewerkers van EEA. Openbare uitslagenlijsten tonen alleen namen als de instellingen van de wedstrijd en de toestemming dat toelaten."] },
+      { h: "Toestemming", p: ["Een ouder of voogd geeft toestemming bij het individueel inschrijven van een leerling. Scholen bevestigen bij het inschrijven dat ze toestemming van de ouders hebben."] },
+      { h: "Beveiliging en bewaren", p: ["Gegevens worden versleuteld verzonden, toegang is per rol beperkt en elke gevoelige handeling wordt vastgelegd. Gegevens worden niet langer bewaard dan nodig, en ouders kunnen vragen de gegevens van een leerling te corrigeren of te verwijderen."] },
+    ],
+    refunds: [
+      { h: "Voordat de inschrijving sluit", p: ["De voorwaarden voor terugbetaling vóór de inschrijvingsdeadline worden door EEA vastgesteld en hier gepubliceerd."] },
+      { h: "Nadat de inschrijving is gesloten", p: ["De voorwaarden voor terugbetaling na de deadline, en voor wedstrijden die EEA annuleert, worden hier gepubliceerd."] },
+      { h: "Hoe terugbetalingen gaan", p: ["Goedgekeurde terugbetalingen gaan terug via de oorspronkelijke betaalmethode, en elke terugbetaling wordt vastgelegd met een bewijs."] },
+    ],
   },
 
   notFound: { title: "Pagina niet gevonden", text: "De pagina die u zoekt is verplaatst of bestaat niet.", home: "Naar home", competitions: "Wedstrijden" },

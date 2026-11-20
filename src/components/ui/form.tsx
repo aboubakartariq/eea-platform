@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTr } from "@/i18n/app-client";
 
 export function Field({
   label,
@@ -13,6 +14,7 @@ export function Field({
   className,
   ...input
 }: InputHTMLAttributes<HTMLInputElement> & { label: string; name: string; error?: string; hint?: ReactNode }) {
+  error = useTr().msg(error);
   const id = `f-${name}`;
   return (
     <div className={className}>
@@ -37,6 +39,7 @@ export function Field({
 }
 
 export function TextArea({ label, name, error, rows = 5, ...rest }: { label: string; name: string; error?: string; rows?: number; required?: boolean; maxLength?: number; defaultValue?: string }) {
+  error = useTr().msg(error);
   const id = `f-${name}`;
   return (
     <div>
@@ -56,14 +59,18 @@ export function TextArea({ label, name, error, rows = 5, ...rest }: { label: str
 
 export function SubmitButton({ children, pendingText, className, variant = "primary" }: { children: ReactNode; pendingText?: string; className?: string; variant?: "primary" | "gold" | "outline" }) {
   const { pending } = useFormStatus();
+  const { tr } = useTr();
   return (
     <button type="submit" disabled={pending} aria-disabled={pending} className={buttonClass(variant, "lg", cn("w-full disabled:opacity-60", className))}>
-      {pending ? pendingText ?? "Please wait…" : children}
+      {pending ? pendingText ?? tr("Please wait…") : children}
     </button>
   );
 }
 
 export function FormMessage({ error, ok }: { error?: string; ok?: string }) {
+  const { msg } = useTr();
+  error = msg(error);
+  ok = msg(ok);
   if (error) return <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-200">{error}</p>;
   if (ok) return <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-200">{ok}</p>;
   return null;

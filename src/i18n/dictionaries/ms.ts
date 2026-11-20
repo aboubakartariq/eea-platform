@@ -439,11 +439,29 @@ const ms: Dictionary = {
 
   legal: {
     eyebrow: "Polisi",
-    englishOnly: "Polisi ini ditulis dalam bahasa Inggeris, dan versi bahasa Inggeris yang terpakai.",
+    englishOnly: "Ini terjemahan untuk memudahkan bacaan. Jika terdapat sebarang perbezaan, versi bahasa Inggeris yang terpakai.",
     draft: "Draf untuk semakan. Polisi ini mesti disemak oleh EEA dan penasihat undang-undangnya sebelum laman web dilancarkan.",
     privacyIntro: "Bagaimana kami mengumpul, menggunakan dan melindungi maklumat pelajar, ibu bapa dan sekolah.",
     termsIntro: "Peraturan untuk menyertai pertandingan EEA.",
     refundsIntro: "Bila dan bagaimana yuran pendaftaran dikembalikan.",
+    terms: [
+      { h: "Kelayakan", p: ["Pelajar menyertai mengikut darjah yang sedang mereka ikuti. Setiap halaman pertandingan menyenaraikan darjah dan mod yang tersedia."] },
+      { h: "Tatakelakuan", p: ["Pelajar mesti membuat kerja sendiri. Cara tidak jujur, berkongsi kertas atau menyamar akan menyebabkan penyingkiran."] },
+      { h: "Keputusan", p: ["Keputusan adalah muktamad selepas diterbitkan, kecuali jika permohonan pembetulan diterima. Permohonan pembetulan boleh dibuat dalam tempoh yang dinyatakan bersama keputusan."] },
+      { h: "Sijil dan anugerah", p: ["Sijil dikeluarkan secara digital dengan nombor unik. Anugerah fizikal dihantar ke sekolah pelajar melainkan dipersetujui sebaliknya."] },
+    ],
+    privacy: [
+      { h: "Apa yang kami kumpul", p: ["Bagi pelajar: nama, darjah, sekolah, tarikh lahir dan butiran hubungan ibu bapa atau penjaga. Bagi sekolah: butiran sekolah dan hubungan penyelaras. Butiran bayaran dikendalikan oleh penyedia pembayaran kami dan tidak disimpan oleh EEA."] },
+      { h: "Mengapa kami mengumpulnya", p: ["Hanya untuk mendaftarkan pelajar, menjalankan pertandingan, menerbitkan keputusan, mengeluarkan sijil dan anugerah, dan menghubungi sekolah serta ibu bapa mengenai perkara ini."] },
+      { h: "Siapa boleh melihatnya", p: ["Rekod pelajar boleh dilihat oleh pelajar itu, ibu bapa atau penjaga yang dipautkan, penyelaras sekolahnya dan kakitangan EEA yang diberi kuasa. Senarai keputusan awam hanya memaparkan nama jika tetapan pertandingan dan persetujuan membenarkannya."] },
+      { h: "Persetujuan", p: ["Ibu bapa atau penjaga memberikan persetujuan apabila mendaftarkan pelajar secara individu. Sekolah mengesahkan mereka mempunyai persetujuan ibu bapa apabila mendaftarkan pelajar."] },
+      { h: "Keselamatan dan penyimpanan", p: ["Data disulitkan semasa dihantar, akses dihadkan mengikut peranan dan setiap tindakan sensitif direkodkan. Rekod disimpan selama yang perlu sahaja, dan ibu bapa boleh meminta data pelajar dibetulkan atau dipadam."] },
+    ],
+    refunds: [
+      { h: "Sebelum pendaftaran ditutup", p: ["Syarat bayaran balik sebelum tarikh akhir pendaftaran akan ditetapkan oleh EEA dan diterbitkan di sini."] },
+      { h: "Selepas pendaftaran ditutup", p: ["Syarat bayaran balik selepas tarikh akhir, dan bagi pertandingan yang dibatalkan oleh EEA, akan diterbitkan di sini."] },
+      { h: "Cara bayaran balik dibuat", p: ["Bayaran balik yang diluluskan dikembalikan melalui kaedah pembayaran asal, dan setiap bayaran balik direkodkan dengan resit."] },
+    ],
   },
 
   notFound: { title: "Halaman tidak ditemui", text: "Halaman yang anda cari telah dipindahkan atau tidak wujud.", home: "Ke laman utama", competitions: "Pertandingan" },

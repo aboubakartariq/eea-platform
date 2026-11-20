@@ -224,7 +224,7 @@ export async function readAnswerSheet(buffer: ArrayBuffer, questions: number) {
   if (!roll || !version) return { error: "The first row must have Roll number and Version columns. Please use the template for this paper." } as const;
   const qCols = Array.from({ length: questions }, (_, i) => col(`q${i + 1}`));
   const missing = qCols.map((c, i) => (c ? null : `Q${i + 1}`)).filter(Boolean);
-  if (missing.length) return { error: `These question columns are missing: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? "…" : ""}. This paper has ${questions} questions.` } as const;
+  if (missing.length) return { error: `These question columns are missing: ${missing.slice(0, 8).join(", ") + (missing.length > 8 ? "…" : "")}. This paper has ${questions} questions.` } as const;
   const rows: SheetRow[] = [];
   for (let r = 2; r <= ws.rowCount; r++) {
     const row = ws.getRow(r);

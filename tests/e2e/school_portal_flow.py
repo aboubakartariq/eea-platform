@@ -74,7 +74,7 @@ with sync_playwright() as p:
     assert stats == ["9", "6", "2", "1"], stats; ok("file checked: 9 rows, 6 ready, 2 need fixing, 1 duplicate")
     expect(pub.locator("text=Parent mobile must be a valid number")).to_be_visible(); expect(pub.locator("text=Same student as row 2")).to_be_visible(); ok("row-level problems explained")
     pub.screenshot(path=SHOTS + "p4_import_preview.png", full_page=True)
-    pub.get_by_role("button", name="Import 6 students").click(); expect(pub.locator("text=were added to your list")).to_be_visible(); ok("6 students imported")
+    pub.get_by_role("button", name="Import 6 students").click(); expect(pub.locator("text=Students added to your list")).to_be_visible(); ok("6 students imported")
     pub.goto(BASE + "/school/students/import"); pub.set_input_files("input[name=file]", "tests/e2e/class-list.xlsx"); pub.click(SUBMIT); pub.wait_for_url("**/import/**")
     stats = pub.locator(".tabular-nums").all_inner_texts()[:4]; assert stats[1] == "0", stats; ok("re-uploading the same file imports nothing new")
 

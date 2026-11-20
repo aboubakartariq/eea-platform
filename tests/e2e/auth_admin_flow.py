@@ -40,7 +40,7 @@ with sync_playwright() as p:
     page.click("main button[type=submit]"); page.wait_for_url("**/account/password"); ok("temporary password forces a password change")
     page.goto(BASE + "/admin"); page.wait_for_url("**/account/password"); ok("admin blocked until password changed")
     page.fill("input[name=current]", TEMP); page.fill("input[name=password]", "short"); page.fill("input[name=confirm]", "short")
-    page.click("main button[type=submit]"); expect(page.locator("text=at least 10 characters").first).to_be_visible(); ok("weak new password rejected")
+    page.click("main button[type=submit]"); expect(page.locator("text=Use at least 10 characters")).to_be_visible(); ok("weak new password rejected")
     page.fill("input[name=current]", TEMP); page.fill("input[name=password]", "Navy-Star-2026!"); page.fill("input[name=confirm]", "Navy-Star-2026!")
     page.click("main button[type=submit]"); page.wait_for_url("**/account/two-factor/setup"); ok("staff forced to set up two-step verification")
     page.screenshot(path=SHOTS + "e2e_2fa_setup.png", full_page=True)
@@ -73,7 +73,7 @@ with sync_playwright() as p:
     pub.click("button[type=submit]"); expect(pub.locator("text=your message has been sent")).to_be_visible(); ok("contact form saved")
     pub.screenshot(path=SHOTS + "e2e_contact.png", full_page=False)
     page.goto(BASE + "/admin/enquiries"); expect(page.locator("text=Grade 4 maths olympiad")).to_be_visible(); ok("enquiry visible in admin")
-    page.get_by_role("button", name="Mark in progress").click(); page.wait_for_timeout(800)
+    page.get_by_role("button", name="Mark as: In progress").click(); page.wait_for_timeout(800)
     page.goto(BASE + "/admin/enquiries?status=in_progress"); expect(page.locator("text=Grade 4 maths olympiad")).to_be_visible(); ok("enquiry status updated")
 
     # 6. Role editor

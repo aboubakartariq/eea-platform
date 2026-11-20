@@ -446,6 +446,24 @@ const en = {
     privacyIntro: "How we collect, use and protect the information of students, parents and schools.",
     termsIntro: "The rules for taking part in EEA competitions.",
     refundsIntro: "When and how registration fees are refunded.",
+    terms: [
+      { h: "Eligibility", p: ["Students take part in the grade they are currently studying. Each competition page lists the grades and modes available."] },
+      { h: "Conduct", p: ["Students must do their own work. Unfair means, sharing papers or impersonation lead to disqualification."] },
+      { h: "Results", p: ["Results are final once published, except where a correction request is upheld. Correction requests can be made within the period stated with the results."] },
+      { h: "Certificates and awards", p: ["Certificates are issued digitally with a unique number. Physical awards are sent to the student's school unless agreed otherwise."] },
+    ],
+    privacy: [
+      { h: "What we collect", p: ["For students: name, grade, school, date of birth and a parent or guardian's contact details. For schools: school details and coordinator contacts. Payment details are handled by our payment providers and are not stored by EEA."] },
+      { h: "Why we collect it", p: ["Only to register students, run competitions, publish results, issue certificates and awards, and contact schools and parents about these."] },
+      { h: "Who can see it", p: ["A student's records are visible to the student, their linked parents or guardians, their school's coordinators and authorised EEA staff. Public result lists show names only where the competition settings and consent allow."] },
+      { h: "Consent", p: ["A parent or guardian gives consent when registering a student individually. Schools confirm they have parental consent when registering students."] },
+      { h: "Security and retention", p: ["Data is encrypted in transit, access is limited by role and every sensitive action is logged. Records are kept only as long as needed, and parents can ask for a student's data to be corrected or deleted."] },
+    ],
+    refunds: [
+      { h: "Before registration closes", p: ["Refund terms before the registration deadline will be set by EEA and published here."] },
+      { h: "After registration closes", p: ["Refund terms after the deadline, and for competitions cancelled by EEA, will be published here."] },
+      { h: "How refunds are paid", p: ["Approved refunds are returned to the original payment method, and every refund is recorded with a receipt."] },
+    ],
   },
 
   notFound: { title: "Page not found", text: "The page you are looking for has moved or does not exist.", home: "Go home", competitions: "Competitions" },

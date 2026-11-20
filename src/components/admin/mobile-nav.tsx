@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { SidebarNav } from "./sidebar-nav";
 import type { AdminNavItem } from "./nav";
+import { useTr } from "@/i18n/app-client";
 
 export function MobileAdminNav({ groups }: { groups: { group: string; items: AdminNavItem[] }[] }) {
+  const { tr } = useTr();
   const [open, setOpen] = useState(false);
   return (
     <div className="lg:hidden">
-      <button type="button" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} onClick={() => setOpen(!open)} className="grid size-10 place-items-center rounded-full hover:bg-navy-50">
+      <button type="button" aria-label={open ? tr("Close menu") : tr("Open menu")} aria-expanded={open} onClick={() => setOpen(!open)} className="grid size-10 place-items-center rounded-full hover:bg-navy-50">
         {open ? <X className="size-5" /> : <Menu className="size-5" />}
       </button>
       {open && (

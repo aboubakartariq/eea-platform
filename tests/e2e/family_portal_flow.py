@@ -38,7 +38,7 @@ with sync_playwright() as p:
     admin.goto(BASE + "/admin/schools"); admin.get_by_role("link", name="Beaconlight Grammar School").click(); admin.get_by_role("button", name="Approve and issue school ID").click(); expect(admin.locator("text=School ID").first).to_be_visible()
     login(school, "coord@beacon.test", "School-Pass-2027"); school.wait_for_url(BASE + "/school")
     school.goto(BASE + "/school/students/import"); school.set_input_files("input[name=file]", "tests/e2e/class-list.xlsx"); school.click(SUBMIT); school.wait_for_url("**/import/**")
-    school.get_by_role("button", name="Import 6 students").click(); expect(school.locator("text=were added to your list")).to_be_visible()
+    school.get_by_role("button", name="Import 6 students").click(); expect(school.locator("text=Students added to your list")).to_be_visible()
     school.goto(BASE + "/school/students?q=Fatima"); fatima_code = school.locator("tbody tr td").first.inner_text().strip()
     ok(f"school imported students; Fatima Noor is {fatima_code}")
 

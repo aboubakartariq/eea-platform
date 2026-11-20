@@ -3,3 +3,6 @@ export const gradeShort = (g: number) => (g === 0 ? "KG" : String(g));
 export const gradeRange = (a: number, b: number) => (a === b ? `Grade ${gradeShort(a)}` : `Grades ${gradeShort(a)}–${gradeShort(b)}`);
 export const GRADE_OPTIONS = [{ v: "0", l: "KG" }, ...Array.from({ length: 12 }, (_, i) => ({ v: String(i + 1), l: `Grade ${i + 1}` }))];
 export const BLUEPRINT_ROWS = 10;
+
+/** "medium" → "Medium" (translated where it is shown). */
+export const difficultyLabel = (d: string) => d.charAt(0).toUpperCase() + d.slice(1);

@@ -117,6 +117,24 @@ They are built in Phases 3–6 with real database operations.
 - [ ] Public list of position holders (needs a consent setting)
 - [ ] Emailing and SMS of results and certificates (Phase 7, needs providers)
 
+### Languages checklist
+
+English, Arabic (right-to-left), Malay, Turkish, Japanese, Dutch, French and Russian.
+
+- [x] Public website: every page in all eight languages, with its own address (`/fr/competitions`, English has no prefix), hreflang links and a multilingual sitemap
+- [x] Language menu on every page; first-time visitors are sent to their browser's language once, after that their choice is remembered
+- [x] Portals for students, parents and schools, the online exam screen, sign-in pages and the admin panel in all eight languages. These keep one address; the saved language choice decides the language
+- [x] Messages from forms and actions (errors and confirmations) translated, including messages built with numbers or names
+- [x] Policy pages (privacy, terms, refunds) translated, each with a note that the English version applies
+- [x] Arabic laid out right to left (logical spacing, flipped arrows) with an Arabic font; Japanese uses system fonts and Japanese line breaking
+- [x] Dates in each language; amounts stay in PKR with Western digits
+- [ ] Translations checked by native speakers (they were written without one)
+- [ ] Policy translations checked by a lawyer
+- [ ] Text that staff type in (competition details, question text, news, custom certificate wording) stays in the language it was written in
+- [ ] Excel templates and exports stay in English, so imports keep working
+
+How it works: public pages use the dictionaries in `src/i18n/dictionaries/`. Portals and admin use English text as the key (`tr("Sign in")`), with translations in `src/i18n/app/{portal,admin}.{lang}.json`; any text without a translation falls back to English.
+
 ## Run locally
 
 ```bash

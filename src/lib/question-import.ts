@@ -84,7 +84,7 @@ export function validateQuestionRow(raw: Partial<Record<QuestionColumnKey, unkno
   if (result.ok) return { ok: true as const, value: result.value };
   const errors = Object.entries(result.errors).map(([field, message]) => {
     if (field === "competitionId") return code ? `Competition code "${code}" is not recognised.` : "Competition code is missing.";
-    if (field === "type") return `Type must be Single choice, Multiple choice, True/False, Number or Short answer${s("type") ? ` (found "${s("type")}")` : ""}.`;
+    if (field === "type") return "Type must be Single choice, Multiple choice, True/False, Number or Short answer.";
     return message;
   });
   return { ok: false as const, errors };

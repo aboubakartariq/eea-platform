@@ -92,7 +92,7 @@ export async function importAnswerSheets(paperId: string, rows: SheetRow[], acto
       score: score.toFixed(2), maxScore: paper.totalMarks, correctCount: lines.filter((l) => l.correct).length, answeredCount: lines.filter((l) => l.answered).length, enteredBy: actorId,
     });
   }
-  if (rowErrors.length) return { ok: false, error: `Nothing was saved. ${rowErrors.length} row${rowErrors.length === 1 ? " has" : "s have"} problems.`, rowErrors: rowErrors.slice(0, 200) };
+  if (rowErrors.length) return { ok: false, error: `Nothing was saved. Rows with problems: ${rowErrors.length}.`, rowErrors: rowErrors.slice(0, 200) };
 
   await db.transaction(async (tx) => {
     for (const s of scripts) {
@@ -157,7 +157,7 @@ export async function calculateResults(competitionId: string, rules: AwardRule[]
   const live = await liveResultSet(competitionId);
   if (live && live.status !== "draft") return { ok: false as const, error: "Results are already approved or published. Withdraw them before recalculating." };
   const { rows, writing, missingSheets } = await gatherScores(competitionId);
-  if (writing) return { ok: false as const, error: `${writing} student${writing === 1 ? " is" : "s are"} still writing the online exam. Calculate after the session closes.` };
+  if (writing) return { ok: false as const, error: `Students still writing the online exam: ${writing}. Calculate after the session closes.` };
   if (!rows.length) return { ok: false as const, error: "No confirmed registrations for this competition." };
   const ranked = rankAndAward(rows as (RankInput & (typeof rows)[number])[], rules);
   const extra = new Map(rows.map((r) => [r.id, r]));

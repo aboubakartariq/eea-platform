@@ -59,9 +59,9 @@ with sync_playwright() as p:
 
         # Questions and a final paper with versions A and B
         write_questions("/tmp/q6.xlsx")
-        admin.goto(BASE + "/admin/questions/import"); admin.set_input_files("input[name=file]", "/tmp/q6.xlsx"); admin.click(SUBMIT); expect(admin.locator("text=Imported 10 questions")).to_be_visible()
-        admin.goto(BASE + "/admin/questions?status=draft"); admin.locator("thead input[type=checkbox]").check(); admin.get_by_role("button", name="Send for review").click(); expect(admin.locator("text=Sent 10 questions")).to_be_visible()
-        rev.goto(BASE + "/admin/questions?status=review"); rev.locator("thead input[type=checkbox]").check(); rev.get_by_role("button", name="Approve").click(); expect(rev.locator("text=Approved 10 questions")).to_be_visible()
+        admin.goto(BASE + "/admin/questions/import"); admin.set_input_files("input[name=file]", "/tmp/q6.xlsx"); admin.click(SUBMIT); expect(admin.locator("text=Imported as drafts: 10")).to_be_visible()
+        admin.goto(BASE + "/admin/questions?status=draft"); admin.locator("thead input[type=checkbox]").check(); admin.get_by_role("button", name="Send for review").click(); expect(admin.locator("text=Sent for review: 10")).to_be_visible()
+        rev.goto(BASE + "/admin/questions?status=review"); rev.locator("thead input[type=checkbox]").check(); rev.get_by_role("button", name="Approve").click(); expect(rev.locator("text=Approved: 10")).to_be_visible()
         cid = sql("select id from competitions where code='MMO'")
         admin.goto(BASE + f"/admin/exams/papers/new?competition={cid}&gradeFrom=4&gradeTo=6&level=1")
         for i, (n, t) in enumerate([("4", "Multiplication"), ("2", "Fractions"), ("2", "Facts")]):
@@ -79,7 +79,7 @@ with sync_playwright() as p:
         admin.goto(BASE + "/admin/schools"); admin.get_by_role("link", name="Beaconlight Grammar School").click(); admin.get_by_role("button", name="Approve and issue school ID").click(); expect(admin.locator("text=School ID").first).to_be_visible()
         login(school, "coord@beacon.test", "School-Pass-2027"); school.wait_for_url(BASE + "/school")
         school.goto(BASE + "/school/students/import"); school.set_input_files("input[name=file]", "tests/e2e/class-list.xlsx"); school.click(SUBMIT); school.wait_for_url("**/import/**")
-        school.get_by_role("button", name="Import 6 students").click(); expect(school.locator("text=were added to your list")).to_be_visible()
+        school.get_by_role("button", name="Import 6 students").click(); expect(school.locator("text=Students added to your list")).to_be_visible()
         school.goto(BASE + "/school/register/mental-math-olympiad"); school.get_by_label("Select all shown").check()
         school.locator("input[name=mode][value=paper]").check(); school.click(SUBMIT); school.wait_for_url("**/school/registrations/**"); expect(school.locator("text=Registration submitted")).to_be_visible()
         school_ref = re.search(r"REG-\d{4}-\d+", school.content()).group(0)
@@ -138,7 +138,7 @@ with sync_playwright() as p:
         assert len(keys["A"]) == 8 and keys["A"] != keys["B"], keys
 
         # Answer sheets: download, fill, upload
-        admin.goto(BASE + "/admin/results/answer-sheets"); expect(admin.locator("text=0 of 4 paper entrants entered")).to_be_visible()
+        admin.goto(BASE + "/admin/results/answer-sheets"); expect(admin.locator("text=Sheets entered: 0 of 4")).to_be_visible()
         with admin.expect_download() as dl: admin.get_by_role("link", name=re.compile("Answer sheet")).click()
         dl.value.save_as("/tmp/sheet.xlsx"); wb = load_workbook("/tmp/sheet.xlsx"); ws = wb.active
         names = {ws.cell(r, 2).value: r for r in range(2, ws.max_row + 1)}
@@ -169,7 +169,7 @@ with sync_playwright() as p:
         # Calculate, approve (second person), publish
         admin.goto(BASE + "/admin/results"); admin.get_by_role("link", name="Mental Math Olympiad").click()
         admin.get_by_role("button", name="Calculate results").click()
-        expect(admin.locator("text=Calculated 6 results (2 absent)")).to_be_visible(); expect(admin.locator("text=1 paper entrant has no answer sheet")).to_be_visible()
+        expect(admin.locator("text=Calculated 6 results (2 absent)")).to_be_visible(); expect(admin.locator("text=no answer sheet yet, shown as absent: 1")).to_be_visible()
         ok("results calculated: 6 entrants, Ali (grade 3, no paper) and Zain absent")
         admin.reload(); admin.get_by_role("link", name="Grade 5").click()
         expect(admin.locator("tbody tr").first).to_contain_text("1 / 2"); expect(admin.locator("tbody tr").nth(1)).to_contain_text("1 / 2"); ok("Zara (online) and Usman (paper) both 8/8 share rank 1 in Grade 5")
@@ -177,7 +177,7 @@ with sync_playwright() as p:
         assert sql(f"select count(*) from results r join students s on s.id=r.student_id where s.first_name='Ali' and r.absent") == "1"
         rev.goto(BASE + f"/admin/results/{cid}"); rev.get_by_role("button", name="Approve results").click(); expect(rev.locator("text=Approved. They can now be published.")).to_be_visible(); ok("second person approved")
         zara.goto(BASE + "/student"); expect(zara.locator("text=My results")).to_have_count(0); ok("approved but unpublished results are hidden from students")
-        admin.reload(); admin.get_by_role("button", name="Publish").click(); expect(admin.locator("text=certificates issued")).to_be_visible()
+        admin.reload(); admin.get_by_role("button", name="Publish").click(); expect(admin.locator("text=Certificates issued:")).to_be_visible()
         assert sql("select count(*) from certificates") == "4"; assert sql("select count(*) from award_dispatches") == "2"
         ok("published: 4 certificates issued, 2 medal parcels (school and parent)")
         admin.screenshot(path=SHOTS + "p6_admin_results.png", full_page=True)

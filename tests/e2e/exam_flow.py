@@ -94,13 +94,13 @@ with sync_playwright() as p:
         admin.goto(BASE + "/admin/questions/import"); admin.set_input_files("input[name=file]", "/tmp/questions-bad.xlsx"); admin.click(SUBMIT)
         expect(admin.locator("text=Nothing was imported")).to_be_visible(); expect(admin.locator('text=Competition code "XYZ" is not recognised')).to_be_visible()
         assert sql("select count(*) from questions") == "1"; ok("file with a bad row: nothing imported, row explained")
-        admin.set_input_files("input[name=file]", "/tmp/questions.xlsx"); admin.click(SUBMIT); expect(admin.locator(f"text=Imported {len(QS)} questions as drafts")).to_be_visible(); ok(f"{len(QS)} questions imported from Excel as drafts")
+        admin.set_input_files("input[name=file]", "/tmp/questions.xlsx"); admin.click(SUBMIT); expect(admin.locator(f"text=Imported as drafts: {len(QS)}")).to_be_visible(); ok(f"{len(QS)} questions imported from Excel as drafts")
         admin.goto(BASE + "/admin/questions?status=draft"); admin.locator("thead input[type=checkbox]").check(); admin.get_by_role("button", name="Send for review").click()
-        expect(admin.locator(f"text=Sent {len(QS)} questions for review")).to_be_visible()
+        expect(admin.locator(f"text=Sent for review: {len(QS)}")).to_be_visible()
         admin.goto(BASE + "/admin/questions?status=review"); admin.locator("thead input[type=checkbox]").check(); admin.get_by_role("button", name="Approve").click()
         expect(admin.locator("text=You wrote these questions")).to_be_visible(); ok("bulk approve skips your own questions")
         rev.goto(BASE + "/admin/questions?status=review"); rev.locator("thead input[type=checkbox]").check(); rev.get_by_role("button", name="Approve").click()
-        expect(rev.locator(f"text=Approved {len(QS)} questions")).to_be_visible(); ok("reviewer bulk-approved the import")
+        expect(rev.locator(f"text=Approved: {len(QS)}")).to_be_visible(); ok("reviewer bulk-approved the import")
         rev.goto(BASE + "/admin/questions"); rev.screenshot(path=SHOTS + "p5_question_bank.png", full_page=True)
 
         # 3. Paper from a blueprint
@@ -111,7 +111,7 @@ with sync_playwright() as p:
         for i, (n, t, d) in enumerate(rows):
             admin.fill(f"input[name=bpCount{i}]", n); admin.fill(f"input[name=bpTopic{i}]", t); admin.select_option(f"select[name=bpDifficulty{i}]", d)
         admin.fill("input[name=title]", "Mental Math Olympiad 2027 — Grades 4–6"); admin.fill("input[name=negativePercent]", "25")
-        admin.click(SUBMIT); expect(admin.locator("text=Row 2 needs 9 medium Fractions questions but only 5 are available")).to_be_visible()
+        admin.click(SUBMIT); expect(admin.locator("text=Row 2: 9 needed (medium Fractions), 5 available")).to_be_visible()
         expect(admin.locator("input[name=bpCount0]")).to_have_value("4"); ok("blueprint shortfall explained; nothing saved")
         admin.fill("input[name=bpCount1]", "3"); admin.screenshot(path=SHOTS + "p5_blueprint.png", full_page=True); admin.click(SUBMIT)
         admin.wait_for_url("**/papers/**created=1"); paper = admin.url.split("/")[-1].split("?")[0]
@@ -215,7 +215,7 @@ with sync_playwright() as p:
         omar.goto(BASE + "/admin/questions"); omar.wait_for_url(BASE + "/student"); ok("student cannot reach the question bank")
         admin.goto(session_url); expect(admin.locator("text=Writing").first).to_be_visible(); expect(admin.locator("tbody tr").first).to_contain_text("10 / 10"); ok("staff monitor shows Zara writing, 10 of 10 answered")
 
-        zara.get_by_role("button", name="Finish", exact=True).click(); expect(zara.locator("text=Ready to submit?")).to_be_visible(); expect(zara.locator("text=1 marked for review")).to_be_visible()
+        zara.get_by_role("button", name="Finish", exact=True).click(); expect(zara.locator("text=Ready to submit?")).to_be_visible(); expect(zara.locator("text=Marked for review: 1")).to_be_visible()
         zara.get_by_role("button", name="Submit my answers").click(); expect(zara.locator("text=Your answers have been submitted")).to_be_visible(timeout=10000)
         score = sql(f"select score || ' ' || max_score || ' ' || correct_count from exam_attempts where id='{zara_attempt}'")
         assert wrong_once["done"] and score == "8.75 10 9", score; ok(f"auto-marked with 25% negative marking: {score.split()[0]} of 10")
